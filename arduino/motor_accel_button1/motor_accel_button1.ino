@@ -10,12 +10,14 @@ For use with the Adafruit Motor Shield v2
 #include <AccelStepper.h>
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
+#include <elapsedMillis.h>
 
 const int moveButtonPin = 2;    // the number of the pushbutton pin
 const int directionTogglePin = 4; // direction either forward or backwards
 const int ledPin =  13;      // the number of the LED pin
 const int DIRECTION_FORWARD =  1;
 const int DIRECTION_BACKWARD =  -1;
+const int MAX_SPEED = 5000;
 
 int moveButtonState = 0;         // current state of the move button
 int lastMoveButtonState = 0;     // previous state of the move button
@@ -44,12 +46,20 @@ AccelStepper Astepper1(forwardstep1, backwardstep1);
 
 int pos = 1000;
 
-const int FORWARD_SPEED = -1;
+int new_pos = 0;
+int speed = MAX_SPEED;
+bool motor_enabled = false;
+
+const int DEBOUNCE_INDEX_TOGGLE = 0;
+const int DEBOUNCE_INDEX_MOVE_BUTTON = 2;
+unsigned long previousMillis[1];
+
+elapsedMillis printTime;
 
 void setup() {
   // while (!Serial);
-  Serial.begin(9600);           // set up Serial library at 9600 bps
-  Serial.println("setup4");
+  Serial.begin(115200);
+  Serial.println("setup");
 
   // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
@@ -60,23 +70,26 @@ void setup() {
   directionToggleState = digitalRead(directionTogglePin);
   if (directionToggleState == HIGH) {
     Serial.println("Toggle On");
-    current_direction = DIRECTION_FORWARD;
+    current_direction = FORWARD;
   } else {
     Serial.println("Toggle Off");
-    current_direction = DIRECTION_BACKWARD;
+    current_direction = BACKWARD;
   }
   Serial.print("Initial current direction ");
   Serial.println(current_direction);
 
+  previousMillis[DEBOUNCE_INDEX_TOGGLE] = millis();
+  previousMillis[DEBOUNCE_INDEX_MOVE_BUTTON] = millis();
 
   // current_direction = DIRECTION_FORWARD;
 
-  // AFMS.begin();
+  AFMS.begin();
 
-  // Astepper1.setMaxSpeed(2000);
-  // Astepper1.setAcceleration(500);
-  // Astepper1.setSpeed(2000);
+  Astepper1.setMaxSpeed(MAX_SPEED);
+  // Astepper1.setAcceleration(1000);
+  Astepper1.setSpeed(MAX_SPEED);
   // Astepper1.moveTo(pos);
+  // Astepper1.moveTo(10);
 }
 
 // int i;
@@ -86,53 +99,137 @@ void loop() {
 
   // if (Astepper1.distanceToGo() == 0) {
 
-  directionToggleState = digitalRead(directionTogglePin);
-
-  if (directionToggleState != lastDirectionToggleState) {
-    if (directionToggleState == HIGH) {
-      Serial.println("Toggle On");
-      current_direction = DIRECTION_FORWARD;
-    } else {
-      Serial.println("Toggle Off");
-      current_direction = DIRECTION_BACKWARD;
+  if ( (millis() - previousMillis[DEBOUNCE_INDEX_TOGGLE]) >= 50) {
+    directionToggleState = digitalRead(directionTogglePin);
+    if (directionToggleState != lastDirectionToggleState) {
+      if (directionToggleState == HIGH) {
+        Serial.println("Toggle On");
+        current_direction = FORWARD;
+      } else {
+        Serial.println("Toggle Off");
+        current_direction = BACKWARD;
+      }
+      Serial.print("current direction ");
+      Serial.println(current_direction);
     }
-    Serial.print("current direction ");
-    Serial.println(current_direction);
-    delay(100);
+    previousMillis[DEBOUNCE_INDEX_TOGGLE] = millis();
+    lastDirectionToggleState = directionToggleState;
   }
-  lastDirectionToggleState = directionToggleState;
 
-  moveButtonState = digitalRead(moveButtonPin);
-  // // compare the buttonState to its previous state
-  if (moveButtonState != lastMoveButtonState) {
+
+  if ( (millis() - previousMillis[DEBOUNCE_INDEX_MOVE_BUTTON]) >= 50) {
+    moveButtonState = digitalRead(moveButtonPin);
+    if (moveButtonState != lastMoveButtonState) {
   //   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-    if (moveButtonState == HIGH) {
-  //     // turn LED on:
-  //     digitalWrite(ledPin, HIGH);
-      Serial.println("Motor On");
+      if (moveButtonState == HIGH) {
+    //     // turn LED on:
+    //     digitalWrite(ledPin, HIGH);
+        Serial.println("Motor On");
+        motor_enabled = true;
+        // Serial.print(" Moving ");
+        // Serial.print(current_direction == FORWARD ? "FORWARD " : "BACKWARD ");
+    //     Serial.println(Astepper1.distanceToGo());
+
+        // new_pos = (current_direction == FORWARD ? 2000 : -2000);
+        speed = (current_direction == FORWARD ? MAX_SPEED : -MAX_SPEED);
+        // Serial.println(new_pos);
+    //     Astepper1.move(new_pos);
+    // //     Astepper1.moveTo(-100);
+
+    //     Astepper1.run();
+
+      } else {
+    //     // turn LED off:
+    //     digitalWrite(ledPin, LOW);
+        motor_enabled = false;
+        Serial.println("Motor Off");
+        
+        // Astepper1.stop();
+      }
+
+      lastMoveButtonState = moveButtonState;
+      previousMillis[DEBOUNCE_INDEX_MOVE_BUTTON] = millis();
+      Serial.println("");
+    }
+  }
+
+  if (motor_enabled) {
+    // if (Astepper1.distanceToGo() == 0) {
       Serial.print(" Moving ");
-      Serial.println(current_direction == DIRECTION_FORWARD ? "FORWARD" : "BACKWARD");
-  //     Serial.println(Astepper1.distanceToGo());
+      Serial.print(current_direction == FORWARD ? "FORWARD " : "BACKWARD ");
+      Serial.println(speed);
+      Astepper1.setSpeed(speed);
+      // Astepper1.move(new_pos);
+      // Astepper1.move(200);
+      // Astepper1.moveTo(new_pos);
+    // }
+    Astepper1.run();
+    Serial.print("    Target position: ");
+    Serial.println(Astepper1.targetPosition());
+  } else {
+      // Serial.println("Motor Off");
+      Astepper1.stop();
+      // Astepper1.runToPosition();
+  }
 
-  //     // Astepper1.move(FORWARD_SPEED);
-  //     Astepper1.moveTo(-100);
+  if (printTime >= 1000) {
+    printTime = 0;
+    float mSpeed = Astepper1.speed();
+    Serial.print(mSpeed);
+    Serial.print("  ");
+    Serial.println(Astepper1.currentPosition());
+  } 
 
-  //     Astepper1.run();
+  // Astepper1.run();
+  // delay(50);
 
-    } else {
-  //     // turn LED off:
-  //     digitalWrite(ledPin, LOW);
-      Serial.println("Motor Off");
+  // if (directionToggleState != lastDirectionToggleState) {
+  //   if (directionToggleState == HIGH) {
+  //     Serial.println("Toggle On");
+  //     current_direction = FORWARD;
+  //   } else {
+  //     Serial.println("Toggle Off");
+  //     current_direction = BACKWARD;
+  //   }
+  //   Serial.print("current direction ");
+  //   Serial.println(current_direction);
+  //   delay(100);
+  // }
+  // lastDirectionToggleState = directionToggleState;
+
+  // moveButtonState = digitalRead(moveButtonPin);
+  // // // compare the buttonState to its previous state
+  // if (moveButtonState != lastMoveButtonState) {
+  // //   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+  //   if (moveButtonState == HIGH) {
+  // //     // turn LED on:
+  // //     digitalWrite(ledPin, HIGH);
+  //     Serial.println("Motor On");
+  //     Serial.print(" Moving ");
+  //     Serial.print(current_direction == FORWARD ? "FORWARD " : "BACKWARD ");
+  // //     Serial.println(Astepper1.distanceToGo());
+
+  //     new_pos = (current_direction == FORWARD ? 10 : -10);
+  //     Serial.println(new_pos);
+  //     Astepper1.move(new_pos);
+  // //     Astepper1.moveTo(-100);
+
+  //     // Astepper1.run();
+
+  //   } else {
+  // //     // turn LED off:
+  // //     digitalWrite(ledPin, LOW);
+  //     Serial.println("Motor Off");
       
   //     Astepper1.stop();
-    }
-    delay(50);
-    Serial.println("");
-  }
+  //   }
+  //   delay(50);
+  //   Serial.println("");
+  // }
 
 
-  // // save the current state as the last state, for next time through the loop
-  lastMoveButtonState = moveButtonState;
+  // // // save the current state as the last state, for next time through the loop
+  // lastMoveButtonState = moveButtonState;
   
     
   // if (Astepper1.distanceToGo() == 0) {
