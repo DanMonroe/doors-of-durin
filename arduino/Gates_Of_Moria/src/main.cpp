@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "GOM_Motor.h"
+#include <GOM_Motor.h>
 
 #include <AccelStepper.h>
 #include <Wire.h>
