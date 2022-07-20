@@ -6,10 +6,6 @@
 #include <Adafruit_MotorShield.h>
 #include <elapsedMillis.h>
 
-const uint16_t MAX_SPEED = 6000;
-const uint8_t DEBOUNCE_INDEX_TOGGLE = 0;
-const uint8_t DEBOUNCE_INDEX_MOVE_BUTTON = 1;
-const uint8_t DEBOUNCE_INDEX_CLOSE_LIMIT_SWITCH = 2;
 
 // State definitions
 #define RUNSPEED 01
@@ -29,7 +25,8 @@ int closeLimitSwitchPins[] = {8, 55};
 int runningLEDState = LOW;
 int lastRunningLEDState = LOW;
 
-int debounceTime = 50;
+const uint16_t MAX_SPEED = 6000;
+const int debounceTime = 50;
 
 // elapsedMillis lastMotorRunTime;
 elapsedMillis lastToggleTime;

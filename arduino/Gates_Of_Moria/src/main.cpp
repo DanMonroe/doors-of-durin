@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "GOM_Motor.h"
+
 #include <AccelStepper.h>
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
@@ -10,6 +11,9 @@ const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
 volatile int stopButtonState = 0;     // current state of the stop button
 
 const bool DEBUG = true;
+const uint8_t motor2Pin_moveButton = 9;
+const uint8_t motor2Pin_directionToggle = 4;
+const uint8_t motor2Pin_runningLEDPin = 7;
 
 elapsedMillis printTime;
 
@@ -39,7 +43,11 @@ void backwardstep2() {
 AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 
 // GOM_Motor::GOM_Motor(bool DEBUG, AccelStepper _stepper, int motorIndex, uint8_t _moveButtonPin, uint8_t _directionTogglePin, uint8_t _motorRunningLEDPin) {
-GOM_Motor motor2 = GOM_Motor(DEBUG, GOM_Astepper2, 0, 9, 4, 7);
+GOM_Motor motor2 = GOM_Motor(DEBUG, GOM_Astepper2, 0, 
+  motor2Pin_moveButton, 
+  motor2Pin_directionToggle, 
+  motor2Pin_runningLEDPin
+);
 
 // Interrupt when the STOP button is pressed
 // Set state on all motors to STOP
