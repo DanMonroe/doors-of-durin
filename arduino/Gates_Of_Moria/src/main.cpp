@@ -43,6 +43,11 @@ void backwardstep2() {
 AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 
 // GOM_Motor::GOM_Motor(bool DEBUG, AccelStepper _stepper, int motorIndex, uint8_t _moveButtonPin, uint8_t _directionTogglePin, uint8_t _motorRunningLEDPin) {
+// GOM_Motor motor1 = GOM_Motor(DEBUG, GOM_Astepper1, 0, 
+//   motor2Pin_moveButton, 
+//   motor2Pin_directionToggle, 
+//   motor2Pin_runningLEDPin
+// );
 GOM_Motor motor2 = GOM_Motor(DEBUG, GOM_Astepper2, 0, 
   motor2Pin_moveButton, 
   motor2Pin_directionToggle, 
@@ -65,11 +70,12 @@ void checkStopButton() {
 }
 
 void setup() {
-  if (DEBUG) {
-    Serial.begin(115200);
+  // if (DEBUG) {
+    Serial.begin(9600);
+    // Serial.begin(115200);
     Serial.println("Start");
     Serial.println();
-  }
+  // }
 
   // Setup Emergency STOP button  
   pinMode(stopButtonPin, INPUT);
@@ -78,7 +84,7 @@ void setup() {
   AFMS.begin();
 
   // // setup motors
-  // // motor1.setupMotor();
+  // motor1.setupMotor();
   motor2.setupMotor();
 }
 
@@ -86,9 +92,9 @@ void loop() {
   // motor1.run();
   motor2.run();
 
-  if (printTime >= 5000) {
-    printTime = 0;
-    // motor1.report("Motor 1");
-    motor2.report("Motor 2");
-  } 
+  // if (printTime >= 5000) {
+  //   printTime = 0;
+  //   // motor1.report("Motor 1");
+  //   motor2.report("Motor 2");
+  // } 
 }

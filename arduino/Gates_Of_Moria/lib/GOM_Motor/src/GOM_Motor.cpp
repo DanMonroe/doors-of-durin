@@ -18,14 +18,14 @@
 
 volatile int state;     // must survive interrupts
 volatile int motorRunningFlag;  // controls the end stop sensor interrupt
-volatile int closeLimitSwitchState = 0;
+volatile int closeLimitSwitchState = 1;
 volatile int closeLimitSwitchPin;
-int closeLimitSwitchPins[] = {8, 55};
+int closeLimitSwitchPins[] = {20, 21};  // The Arduino Mega has six hardware interrupts including the additional interrupts ("interrupt2" through "interrupt5") on pins 21, 20, 19, and 18
 
 int runningLEDState = LOW;
 int lastRunningLEDState = LOW;
 
-const uint16_t MAX_SPEED = 6000;
+const int MAX_SPEED = 6000;
 const int debounceTime = 50;
 
 // elapsedMillis lastMotorRunTime;
@@ -41,7 +41,22 @@ GOM_Motor::GOM_Motor(bool _debug, AccelStepper _stepper, int _motorIndex, uint8_
   moveButtonPin = _moveButtonPin;
   directionTogglePin = _directionTogglePin;
   motorRunningLEDPin = _motorRunningLEDPin;
+
+  // fwdstp = &GOM_Motor::forwardstep;
+	// bckwdstp = &GOM_Motor::backwardstep;
+	// Adafruit_MotorShield AFMS (IICADDRESS);
+	// Adafruit_StepperMotor *AFstepper = AFMS.getStepper(200, 1); //M1 M2
+	// AccelStepper stepper(forwardstep, backwardstep);
 }
+// //go 1 step forward
+// void GOM_Motor::forwardstep() {
+// 	AFstepper->onestep(FORWARD, DOUBLE);
+// }
+// //go 1 step backward
+// void GOM_Motor::backwardstep() {
+// 	AFstepper->onestep(BACKWARD, DOUBLE);
+// }
+
 
 void GOM_Motor::setupMotor() {
 
@@ -56,9 +71,10 @@ void GOM_Motor::setupMotor() {
   pinMode(motorRunningLEDPin, OUTPUT);
   digitalWrite(motorRunningLEDPin, runningLEDState);  // Start off
 
-  state = RUN;   // initial state is run, just run
+  state = RUNSPEED;
 
   pinMode (closeLimitSwitchPin, INPUT);
+  // attachInterrupt(closeLimitSwitchPins[motorIndex], closeLimitSwitchCallback, RISING);
   attachInterrupt(digitalPinToInterrupt(closeLimitSwitchPins[motorIndex]), closeLimitSwitchCallback, RISING);
 
   stepper.setMaxSpeed(MAX_SPEED);
@@ -92,7 +108,7 @@ void GOM_Motor::run() {
     case RUNSPEED:
       runningLEDState = HIGH;
       motorRunningFlag = 1;
-    //   stepper.runSpeed();
+      // stepper.runSpeed();
       break;
     case RUN:
       runningLEDState = HIGH;
@@ -102,6 +118,9 @@ void GOM_Motor::run() {
     //   lastMotorRunTime = 0;
       break;
     case STOP_BY_CLOSE_LIMIT:
+      if (motorRunningFlag == 1) {
+        println("STOP_BY_CLOSE_LIMIT");
+      }
       runningLEDState = LOW;
       motorRunningFlag = 0;
       stepper.stop();
@@ -117,6 +136,7 @@ void GOM_Motor::run() {
       // digitalWrite(sensorPin,LOW);    // removes interrupt signal
       // stepper.setAcceleration(200.0);  // this makes motor stop much quicker!
       stepper.stop();
+      // stepper.disableOutputs();
       // stepper.runToPosition();  // brings to a stop!
       // stepper.moveTo(0);  // now return to home position
       // stepper.setAcceleration(50.0);  // slow motor acceleration back down
@@ -181,7 +201,7 @@ void GOM_Motor::setState() {
         println("Motor On");
         currentSpeed = (current_direction == FORWARD ? MAX_SPEED : -MAX_SPEED);
         setSpeed(currentSpeed);
-        state = RUN;
+        state = RUNSPEED;
       } else {
         state = STOP;
         println("Motor Off");
@@ -228,7 +248,7 @@ void GOM_Motor::closeLimitSwitchCallback() {
   closeLimitSwitchState = digitalRead(closeLimitSwitchPin);
   if (closeLimitSwitchState == LOW && motorRunningFlag == 1) {
     state = STOP_BY_CLOSE_LIMIT;
-    motorRunningFlag = 0;
+    // motorRunningFlag = 0;
   }
 }
 

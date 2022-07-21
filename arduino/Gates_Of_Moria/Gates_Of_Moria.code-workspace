@@ -1,0 +1,16 @@
+{
+	"folders": [
+    {
+      "path": "."
+    },
+    {
+      "name": "Motor Test",
+      "path": "../../../../../Documents/PlatformIO/Projects/Motor Test"
+    },
+    {
+      "name": "Mega Test",
+      "path": "../../../../../Documents/PlatformIO/Projects/Mega Test"
+    }
+  ],
+  "settings": {}
+}

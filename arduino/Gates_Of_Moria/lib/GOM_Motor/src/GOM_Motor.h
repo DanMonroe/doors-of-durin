@@ -3,6 +3,10 @@
 
 #include <Arduino.h>
 #include <AccelStepper.h>
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+
+#define IICADDRESS 0x60
 
 /**
  * @brief Gates of Moria Motor class
@@ -34,12 +38,24 @@ class GOM_Motor {
     void setState();
     void toggleRunningLEDIfNeeded();
 
+    //Adafruit Motor Shield object
+	  // Adafruit_MotorShield AFMS; 
+	  // //Adafruit Stepper Motor object
+	  // Adafruit_StepperMotor *AFstepper; 
+	  // //AccelStepper wrapper
+	  // AccelStepper* stepper; 
+
   public:
     GOM_Motor(bool debug, AccelStepper stepper, int motorIndex, uint8_t moveButtonPin, uint8_t directionTogglePin, uint8_t _motorRunningLEDPin);
     void report(String name);
     void run();
     void setupMotor();
     void stopEverything(String name);
+
+    // void forwardstep();
+	  // void (*fwdstp)();
+	  // void backwardstep();
+	  // void(*bckwdstp)();
 
 };
 
