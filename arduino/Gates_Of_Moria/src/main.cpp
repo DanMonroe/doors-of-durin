@@ -10,10 +10,11 @@
 const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
 volatile int stopButtonState = 0;     // current state of the stop button
 
-const bool DEBUG = false;
-const uint8_t motor2Pin_moveButton = 9;
+const bool DEBUG = true;
 const uint8_t motor2Pin_directionToggle = 4;
-const uint8_t motor2Pin_runningLEDPin = 7;
+const uint8_t motor2Pin_runningLED = 7;
+const uint8_t motor2Pin_closeLimitSwitch = 8;
+const uint8_t motor2Pin_moveButton = 9;
 
 elapsedMillis printTime;
 
@@ -48,10 +49,13 @@ AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 //   motor2Pin_directionToggle, 
 //   motor2Pin_runningLEDPin
 // );
-GOM_Motor motor2 = GOM_Motor(DEBUG, GOM_Astepper2, 0, 
+GOM_Motor motor2 = GOM_Motor(
+  DEBUG, 
+  GOM_Astepper2, 
+  motor2Pin_closeLimitSwitch, 
   motor2Pin_moveButton, 
   motor2Pin_directionToggle, 
-  motor2Pin_runningLEDPin
+  motor2Pin_runningLED
 );
 
 // Interrupt when the STOP button is pressed
