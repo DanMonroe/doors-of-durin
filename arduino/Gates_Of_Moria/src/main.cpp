@@ -10,7 +10,7 @@
 const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
 volatile int stopButtonState = 0;     // current state of the stop button
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 const uint8_t motor2Pin_moveButton = 9;
 const uint8_t motor2Pin_directionToggle = 4;
 const uint8_t motor2Pin_runningLEDPin = 7;
@@ -83,12 +83,16 @@ void setup() {
   
   AFMS.begin();
 
+  // GOM_Astepper2.setMaxSpeed(6000);
+  // GOM_Astepper2.setSpeed(6000);
+
   // // setup motors
   // motor1.setupMotor();
   motor2.setupMotor();
 }
 
 void loop() {
+  // GOM_Astepper2.runSpeed();
   // motor1.run();
   motor2.run();
 

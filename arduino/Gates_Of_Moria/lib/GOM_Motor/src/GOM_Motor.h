@@ -20,7 +20,7 @@ class GOM_Motor {
     uint8_t motorRunningLEDPin;           // the number of the pushbutton pin
     uint8_t moveButtonPin;                // the number of the pushbutton pin
     uint8_t directionTogglePin;           // direction either forward or backwards
-    uint8_t current_direction = 0;
+    int current_direction = 0;
     uint8_t directionToggleState = 0;     // current state of the direction toggle
     uint8_t lastDirectionToggleState = 0;
     uint8_t moveButtonState = 0;          // current state of the move button

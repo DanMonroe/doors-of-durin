@@ -25,7 +25,8 @@ int closeLimitSwitchPins[] = {20, 21};  // The Arduino Mega has six hardware int
 int runningLEDState = LOW;
 int lastRunningLEDState = LOW;
 
-const int MAX_SPEED = 6000;
+const int MAX_SPEED = 600;
+// const int MAX_SPEED = 6000;
 const int debounceTime = 50;
 
 // elapsedMillis lastMotorRunTime;
@@ -73,25 +74,27 @@ void GOM_Motor::setupMotor() {
 
   state = RUNSPEED;
 
-  pinMode (closeLimitSwitchPin, INPUT);
-  // attachInterrupt(closeLimitSwitchPins[motorIndex], closeLimitSwitchCallback, RISING);
-  attachInterrupt(digitalPinToInterrupt(closeLimitSwitchPins[motorIndex]), closeLimitSwitchCallback, RISING);
+  // pinMode (closeLimitSwitchPin, INPUT);
+  // // attachInterrupt(closeLimitSwitchPins[motorIndex], closeLimitSwitchCallback, RISING);
+  // attachInterrupt(digitalPinToInterrupt(closeLimitSwitchPins[motorIndex]), closeLimitSwitchCallback, RISING);
 
-  stepper.setMaxSpeed(MAX_SPEED);
-  stepper.setSpeed(MAX_SPEED);
   // stepper.setAcceleration(1000);
   
   pinMode(moveButtonPin, INPUT);
   pinMode(directionTogglePin, INPUT_PULLUP);
 
   directionToggleState = digitalRead(directionTogglePin);
+  lastDirectionToggleState = directionToggleState;
   if (directionToggleState == HIGH) {
     println("Toggle On");
-    current_direction = FORWARD;
+    current_direction = 1;
   } else {
     println("Toggle Off");
-    current_direction = BACKWARD;
+    current_direction = -1;
   }
+
+  stepper.setMaxSpeed(MAX_SPEED);
+  stepper.setSpeed(current_direction * MAX_SPEED);
 
   println("");
 
@@ -103,32 +106,34 @@ void GOM_Motor::setupMotor() {
 
 void GOM_Motor::run() {
   setState();
+  // stepper.runSpeed();
 
   switch(state) {
     case RUNSPEED:
       runningLEDState = HIGH;
       motorRunningFlag = 1;
-      // stepper.runSpeed();
+      stepper.runSpeed();
       break;
-    case RUN:
-      runningLEDState = HIGH;
-      motorRunningFlag = 1;
-    //   setSpeed(currentSpeed);
-    //   stepper.run();
-    //   lastMotorRunTime = 0;
-      break;
-    case STOP_BY_CLOSE_LIMIT:
-      if (motorRunningFlag == 1) {
-        println("STOP_BY_CLOSE_LIMIT");
-      }
-      runningLEDState = LOW;
-      motorRunningFlag = 0;
-      stepper.stop();
-      break;
+  //   case RUN:
+  //     runningLEDState = HIGH;
+  //     motorRunningFlag = 1;
+  //   //   setSpeed(currentSpeed);
+  //   //   stepper.run();
+  //   //   lastMotorRunTime = 0;
+  //     break;
+  //   case STOP_BY_CLOSE_LIMIT:
+  //     if (motorRunningFlag == 1) {
+  //       println("STOP_BY_CLOSE_LIMIT");
+  //     }
+  //     runningLEDState = LOW;
+  //     motorRunningFlag = 0;
+  //     stepper.stop();
+  //     break;
     case STOP:
       runningLEDState = LOW;
       motorRunningFlag = 0;
       stepper.stop();
+      stepper.disableOutputs();
       break;
     case STOP_NOW:
       runningLEDState = LOW;
@@ -136,7 +141,7 @@ void GOM_Motor::run() {
       // digitalWrite(sensorPin,LOW);    // removes interrupt signal
       // stepper.setAcceleration(200.0);  // this makes motor stop much quicker!
       stepper.stop();
-      // stepper.disableOutputs();
+      stepper.disableOutputs();
       // stepper.runToPosition();  // brings to a stop!
       // stepper.moveTo(0);  // now return to home position
       // stepper.setAcceleration(50.0);  // slow motor acceleration back down
@@ -158,7 +163,8 @@ void GOM_Motor::run() {
 void GOM_Motor::setSpeed(int speed) {
   println(stepper.speed());
   stepper.setSpeed(speed);
-  print("   Set speed");
+  // stepper.setSpeed(speed);
+  print("   Set speed ");
   println(speed);
   println(stepper.speed());
 }
@@ -180,13 +186,15 @@ void GOM_Motor::setState() {
     if (directionToggleState != lastDirectionToggleState) {
       if (directionToggleState == HIGH) {
         println("Toggle On");
-        current_direction = FORWARD;
+        current_direction = 1;
       } else {
         println("Toggle Off");
-        current_direction = BACKWARD;
+        current_direction = -1;
       }
       print("current direction ");
       println(current_direction);
+      currentSpeed = (current_direction * MAX_SPEED);
+      setSpeed(currentSpeed);
     }
     lastToggleTime = 0;
     lastDirectionToggleState = directionToggleState;
@@ -199,7 +207,7 @@ void GOM_Motor::setState() {
       // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
       if (moveButtonState == HIGH) {
         println("Motor On");
-        currentSpeed = (current_direction == FORWARD ? MAX_SPEED : -MAX_SPEED);
+        currentSpeed = (current_direction * MAX_SPEED);
         setSpeed(currentSpeed);
         state = RUNSPEED;
       } else {
