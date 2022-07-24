@@ -48,6 +48,7 @@ void backwardstep2() {
   stepper2->onestep(BACKWARD, DOUBLE);
 }
 
+
 // AccelStepper GOM_Astepper1(forwardstep1, backwardstep1);
 AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 
@@ -80,6 +81,7 @@ void stopEverything() {
   Serial.println("STOP!");
   // motor1.stopEverything("Motor 1");
   motor2.stopEverything("Motor 2");
+  stepper2->release();
 }
 
 void checkStopButton() {

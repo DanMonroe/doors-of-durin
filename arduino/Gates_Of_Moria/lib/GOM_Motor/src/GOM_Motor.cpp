@@ -103,6 +103,7 @@ void GOM_Motor::setupMotor() {
   pinMode(directionTogglePin, INPUT_PULLUP);
 
   stepper.setMaxSpeed(MAX_SPEED);
+  stepper.setAcceleration(2);
   stepper.setSpeed(currentDirection * MAX_SPEED);
 
   println("");
