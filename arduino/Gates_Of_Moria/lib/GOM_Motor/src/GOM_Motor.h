@@ -40,6 +40,7 @@ class GOM_Motor {
     int currentDirection = 0;
     int currentSpeed = 0;
     int openingDirection = 0;
+    int targetOpenPosition = 0;
 
     int currentPosition = 0;
 
@@ -68,7 +69,8 @@ class GOM_Motor {
       uint8_t moveButtonPin, 
       uint8_t directionTogglePin, 
       uint8_t motorRunningLEDPin, 
-      int closingDirection
+      int closingDirection,
+      long targetOpenPosition
     );
     void report(String name);
     void run();

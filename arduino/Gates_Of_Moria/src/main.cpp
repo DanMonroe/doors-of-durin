@@ -16,6 +16,7 @@ const uint8_t motor2Pin_runningLED = 7;
 const uint8_t motor2Pin_closeOpenButton = 10;
 const uint8_t motor2Pin_closeLimitSwitch = 8;
 const uint8_t motor2Pin_moveButton = 9;
+const long motor2_targetOpenPosition = 7000;  // eventually 7000
 
 // const uint8_t motor1Pin_directionToggle = 4;
 // const uint8_t motor1Pin_runningLED = 7;
@@ -59,7 +60,7 @@ AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 //   motor1Pin_moveButton, 
 //   motor1Pin_directionToggle, 
 //   motor1Pin_runningLED,
-//   -1
+//   1
 // );
 GOM_Motor motor2 = GOM_Motor(
   DEBUG, 
@@ -69,7 +70,8 @@ GOM_Motor motor2 = GOM_Motor(
   motor2Pin_moveButton, 
   motor2Pin_directionToggle, 
   motor2Pin_runningLED,
-  1
+  -1,
+  motor2_targetOpenPosition
 );
 
 // Interrupt when the STOP button is pressed
@@ -114,7 +116,7 @@ void loop() {
   // motor1.run();
   motor2.run();
 
-  if (printTime >= 5000) {
+  if (printTime >= 1000) {
     printTime = 0;
   //   // motor1.report("Motor 1");
     motor2.report("Motor 2");

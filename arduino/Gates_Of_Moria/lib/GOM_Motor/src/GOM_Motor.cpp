@@ -46,7 +46,8 @@ GOM_Motor::GOM_Motor(
     uint8_t _moveButtonPin, 
     uint8_t _directionTogglePin, 
     uint8_t _motorRunningLEDPin, 
-    int _closingDirection
+    int _closingDirection,
+    long _targetOpenPosition
   ) {
     DEBUG = _debug;
     stepper = _stepper;
@@ -55,10 +56,12 @@ GOM_Motor::GOM_Motor(
     moveButtonPin = _moveButtonPin;
     directionTogglePin = _directionTogglePin;
     motorRunningLEDPin = _motorRunningLEDPin;
+    
     closingDirection = _closingDirection;
+    currentDirection = _closingDirection;
     openingDirection = -1 * closingDirection;
 
-    currentDirection = _closingDirection;
+    targetOpenPosition = _targetOpenPosition;
 
   // fwdstp = &GOM_Motor::forwardstep;
 	// bckwdstp = &GOM_Motor::backwardstep;
@@ -189,13 +192,16 @@ void GOM_Motor::setState() {
           // open the door
           println("Open the door");
           currentSpeed = (openingDirection * MAX_SPEED);
+          // stepper.move(targetOpenPosition);
+          // Must call setSpeed AFTER moveTo
+          stepper.moveTo(targetOpenPosition);
           setSpeed(currentSpeed);
           state = OPENING;
         } else {
-          // close the door
-          println("Close the door");
-          setSpeed(closingDirection * MAX_SPEED);
-          state = CLOSING;
+          // // close the door
+          // println("Close the door");
+          // setSpeed(closingDirection * MAX_SPEED);
+          // state = CLOSING;
         }
       }
       lastCloseOpenButtonPinState = closeOpenButtonState;
@@ -254,7 +260,8 @@ void GOM_Motor::run() {
         if (initialized) {
           runningLEDState = HIGH;
           motorRunningFlag = 1;
-          stepper.runSpeed();
+          // stepper.runSpeed();
+          stepper.runSpeedToPosition();
         }
       break;
     case OPEN:
@@ -385,10 +392,12 @@ void GOM_Motor::report(String name) {
     print(name);
     print(" state: ");
     print(state);
-    print(" speed: ");
+    print(" spd: ");
     print(mSpeed);
-    print("  pos: ");
+    print(" pos: ");
     println(stepper.currentPosition());
-    print("  currentPosition: ");
-    println(currentPosition);
+    // print("  currentPosition: ");
+    // print(currentPosition);
+    print(" trgt: ");
+    println(targetOpenPosition);
 }
