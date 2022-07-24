@@ -29,7 +29,7 @@ int lastRunningLEDState = LOW;
 
 const int MAX_SPEED = 600;
 // const int MAX_SPEED = 6000;
-const int debounceTime = 50;
+const int debounceTime = 200;
 
 // elapsedMillis lastMotorRunTime;
 elapsedMillis lastCloseLimitSwitchTime;
@@ -98,7 +98,7 @@ void GOM_Motor::setupMotor() {
     state = STOP_BY_CLOSE_LIMIT;
     if (!initialized) {
       initialized = true;
-      currentPosition = 0;
+      // currentPosition = 0;
       currentDirection = openingDirection;
       state = CLOSED;
     }
@@ -132,16 +132,17 @@ void GOM_Motor::setState() {
     if (closeLimitSwitchState != lastCloseLimitSwitchState) {
       if (closeLimitSwitchState == LOW) {
         println("Limit Switch Closed");
-        state = STOP_BY_CLOSE_LIMIT;
 
         // If starting while the close limit switch is closed, set ready to open.
-        if (!initialized) {
+        if (!initialized || state == CLOSING) {
           println("Initialized");
           initialized = true;
-          currentPosition = 0;
+          // currentPosition = 0;
           currentDirection = openingDirection;
           state = CLOSED;
           // toggleDirection();
+        } else {
+          state = STOP_BY_CLOSE_LIMIT;
         }
       } else {
         println("Limit Switch Open");
@@ -188,20 +189,45 @@ void GOM_Motor::setState() {
         }
       } else {
         // Move
+        print("===== LOW/HIGH ");
+        print(LOW);
+        print(":");
+        println(HIGH);
+        print("===== closeOpenButtonState ");
+        println(closeOpenButtonState);
         if (closeOpenButtonState == HIGH) {
           // open the door
           println("Open the door");
-          currentSpeed = (openingDirection * MAX_SPEED);
-          // stepper.move(targetOpenPosition);
-          // Must call setSpeed AFTER moveTo
-          stepper.moveTo(targetOpenPosition);
-          setSpeed(currentSpeed);
-          state = OPENING;
-        } else {
-          // // close the door
-          // println("Close the door");
-          // setSpeed(closingDirection * MAX_SPEED);
-          // state = CLOSING;
+          print("  state now: ");
+          println(state);
+
+          if(state == OPEN) {
+            // Door at max open position.
+            // put into CLOSING state and rely on limit switch to stop
+            println("its open...  close now");
+            currentSpeed = (closingDirection * MAX_SPEED);
+            // stepper.moveTo(0);
+            setSpeed(currentSpeed);
+            state = CLOSING;
+
+            print(" -> from OPEN. state now:");
+            println(state);
+          } else if (state == CLOSED) {
+            println("its closed...  open");
+            currentSpeed = (openingDirection * MAX_SPEED);
+            // stepper.move(targetOpenPosition);
+            // Must call setSpeed AFTER moveTo
+            stepper.moveTo(targetOpenPosition);
+            setSpeed(currentSpeed);
+            state = OPENING;
+
+            print(" -> from CLOSED. state now:");
+            println(state);
+          }
+        // } else {
+        //   print("  else.  state:");
+        //   println(state);
+
         }
       }
       lastCloseOpenButtonPinState = closeOpenButtonState;
@@ -229,6 +255,10 @@ void GOM_Motor::setState() {
       println("");
     }
   }
+
+  if (state == OPENING && stepper.distanceToGo() == 0) {
+    state = OPEN;
+  }
 }
 
 void GOM_Motor::run() {
@@ -241,18 +271,19 @@ void GOM_Motor::run() {
       break;
     case CLOSING:
       // println("CLOSING");
-        if (!initialized) {
+        // if (initialized) {
           runningLEDState = HIGH;
           motorRunningFlag = 1;
           stepper.runSpeed();
-        }
+        // }
       break;
     case CLOSED:
       motorRunningFlag = 0;
       runningLEDState = LOW;
       currentDirection = openingDirection;
-      stepper.setCurrentPosition(0);
+      stepper.setSpeed(0);
       stepper.stop();
+      stepper.setCurrentPosition(0);
       stepper.disableOutputs();
       break;
     case OPENING:
@@ -269,6 +300,7 @@ void GOM_Motor::run() {
       runningLEDState = LOW;
       currentDirection = closingDirection;
       // stepper.setCurrentPosition(0);
+      stepper.setSpeed(0);
       stepper.stop();
       stepper.disableOutputs();
       break;
@@ -389,15 +421,53 @@ void GOM_Motor::println(long val) {
 
 void GOM_Motor::report(String name) {
     float mSpeed = stepper.speed();
-    print(name);
+    println(name);
     print(" state: ");
-    print(state);
+    switch(state) {
+      case INIT:
+        println("INIT");
+        break;
+      case CLOSING:
+        println("CLOSING");
+        break;
+      case CLOSED:
+        println("CLOSED");
+        break;
+      case RUNSPEED:
+        println("RUNSPEED");
+        break;
+      case RUN:
+        println("RUN");
+        break;
+      case RUN_HOME:
+        println("RUN_HOME");
+        break;
+      case STOP:
+        println("STOP");
+        break;
+      case STOP_NOW:
+        println("STOP_NOW");
+        break;
+      case STOP_BY_CLOSE_LIMIT:
+        println("STOP_BY_CLOSE_LIMIT");
+        break;
+      case OPENING:
+        println("OPENING");
+        break;
+      case OPEN:
+        println("OPEN");
+        break;
+      default:
+        println("UNKNOWN!!!!!");
+        break;
+    }
     print(" spd: ");
     print(mSpeed);
     print(" pos: ");
-    println(stepper.currentPosition());
+    print(stepper.currentPosition());
     // print("  currentPosition: ");
     // print(currentPosition);
     print(" trgt: ");
     println(targetOpenPosition);
+    println("-----------------------------------------------------");
 }
