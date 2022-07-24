@@ -15,11 +15,17 @@
 class GOM_Motor {
   private:
     bool DEBUG = true;
+    bool initialized = false;
+
     AccelStepper stepper;
     uint8_t motorRunningLEDPin;           // the number of the pushbutton pin
     
-    uint8_t moveButtonPin;                // the number of the pushbutton pin
-    uint8_t moveButtonState = 0;          // current state of the move button
+    uint8_t closeOpenButtonPin;                // the number of the close or open button pin
+    uint8_t closeOpenButtonState = 0;          // current state of the close or open button
+    uint8_t lastCloseOpenButtonPinState = 0;
+
+    uint8_t moveButtonPin;                // the number of the manual move button pin
+    uint8_t moveButtonState = 0;          // current state of the manual move button
     uint8_t lastMoveButtonState = 0;
 
     uint8_t directionTogglePin;           // direction either forward or backwards
@@ -30,8 +36,12 @@ class GOM_Motor {
     uint8_t closeLimitSwitchState = 0;
     uint8_t lastCloseLimitSwitchState = 0;
 
-    int current_direction = 0;
+    int closingDirection = 0;
+    int currentDirection = 0;
     int currentSpeed = 0;
+    int openingDirection = 0;
+
+    int currentPosition = 0;
 
     void println(String val);
     void print(String val);
@@ -40,6 +50,7 @@ class GOM_Motor {
     void setSpeed(int speed);
     void setState();
     void toggleRunningLEDIfNeeded();
+    void toggleDirection();
 
     //Adafruit Motor Shield object
 	  // Adafruit_MotorShield AFMS; 
@@ -49,7 +60,16 @@ class GOM_Motor {
 	  // AccelStepper* stepper; 
 
   public:
-    GOM_Motor(bool debug, AccelStepper stepper, uint8_t _closeLimitSwitchPin, uint8_t moveButtonPin, uint8_t directionTogglePin, uint8_t _motorRunningLEDPin);
+    GOM_Motor(
+      bool debug, 
+      AccelStepper stepper, 
+      uint8_t closeOpenButtonPin, 
+      uint8_t closeLimitSwitchPin, 
+      uint8_t moveButtonPin, 
+      uint8_t directionTogglePin, 
+      uint8_t motorRunningLEDPin, 
+      int closingDirection
+    );
     void report(String name);
     void run();
     void setupMotor();

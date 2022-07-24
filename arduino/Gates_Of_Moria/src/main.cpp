@@ -13,8 +13,15 @@ volatile int stopButtonState = 0;     // current state of the stop button
 const bool DEBUG = true;
 const uint8_t motor2Pin_directionToggle = 4;
 const uint8_t motor2Pin_runningLED = 7;
+const uint8_t motor2Pin_closeOpenButton = 10;
 const uint8_t motor2Pin_closeLimitSwitch = 8;
 const uint8_t motor2Pin_moveButton = 9;
+
+// const uint8_t motor1Pin_directionToggle = 4;
+// const uint8_t motor1Pin_runningLED = 7;
+// const uint8_t motor1Pin_closeOpenButton = 10;
+// const uint8_t motor1Pin_closeLimitSwitch = 8;
+// const uint8_t motor1Pin_moveButton = 9;
 
 elapsedMillis printTime;
 
@@ -43,19 +50,26 @@ void backwardstep2() {
 // AccelStepper GOM_Astepper1(forwardstep1, backwardstep1);
 AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 
-// GOM_Motor::GOM_Motor(bool DEBUG, AccelStepper _stepper, int motorIndex, uint8_t _moveButtonPin, uint8_t _directionTogglePin, uint8_t _motorRunningLEDPin) {
-// GOM_Motor motor1 = GOM_Motor(DEBUG, GOM_Astepper1, 0, 
-//   motor2Pin_moveButton, 
-//   motor2Pin_directionToggle, 
-//   motor2Pin_runningLEDPin
+// startingDirection should be opposite for each motor;
+// GOM_Motor motor1 = GOM_Motor(
+//   DEBUG, 
+//   GOM_Astepper1, 
+//   motor1Pin_closeOpenButton, 
+//   motor1Pin_closeLimitSwitch, 
+//   motor1Pin_moveButton, 
+//   motor1Pin_directionToggle, 
+//   motor1Pin_runningLED,
+//   -1
 // );
 GOM_Motor motor2 = GOM_Motor(
   DEBUG, 
   GOM_Astepper2, 
+  motor2Pin_closeOpenButton, 
   motor2Pin_closeLimitSwitch, 
   motor2Pin_moveButton, 
   motor2Pin_directionToggle, 
-  motor2Pin_runningLED
+  motor2Pin_runningLED,
+  1
 );
 
 // Interrupt when the STOP button is pressed
@@ -100,9 +114,9 @@ void loop() {
   // motor1.run();
   motor2.run();
 
-  // if (printTime >= 5000) {
-  //   printTime = 0;
+  if (printTime >= 5000) {
+    printTime = 0;
   //   // motor1.report("Motor 1");
-  //   motor2.report("Motor 2");
-  // } 
+    motor2.report("Motor 2");
+  } 
 }
