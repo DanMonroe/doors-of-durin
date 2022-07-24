@@ -17,7 +17,6 @@ const uint8_t motor2Pin_closeOpenButton = 10;
 const uint8_t motor2Pin_closeLimitSwitch = 8;
 const uint8_t motor2Pin_moveButton = 9;
 const long motor2_targetOpenPosition = 500;  // eventually 7000
-// const long motor2_targetOpenPosition = 7000;  // eventually 7000
 
 // const uint8_t motor1Pin_directionToggle = 4;
 // const uint8_t motor1Pin_runningLED = 7;
