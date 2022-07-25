@@ -20,9 +20,9 @@ class GOM_Motor {
     AccelStepper stepper;
     uint8_t motorRunningLEDPin;           // the number of the pushbutton pin
     
-    uint8_t closeOpenButtonPin;                // the number of the close or open button pin
-    uint8_t closeOpenButtonState = 0;          // current state of the close or open button
-    uint8_t lastCloseOpenButtonPinState = 0;
+    // uint8_t closeOpenButtonPin;                // the number of the close or open button pin
+    // uint8_t closeOpenButtonState = 0;          // current state of the close or open button
+    // uint8_t lastCloseOpenButtonPinState = 0;
 
     uint8_t moveButtonPin;                // the number of the manual move button pin
     uint8_t moveButtonState = 0;          // current state of the manual move button
@@ -61,10 +61,10 @@ class GOM_Motor {
 	  // AccelStepper* stepper; 
 
   public:
+// uint8_t closeOpenButtonPin, 
     GOM_Motor(
       bool debug, 
       AccelStepper stepper, 
-      uint8_t closeOpenButtonPin, 
       uint8_t closeLimitSwitchPin, 
       uint8_t moveButtonPin, 
       uint8_t directionTogglePin, 
@@ -76,6 +76,7 @@ class GOM_Motor {
     void run();
     void setupMotor();
     void stopEverything(String name);
+    void initiateAction(int actionButtonState);  // HIGH or LOW
 
     // void forwardstep();
 	  // void (*fwdstp)();

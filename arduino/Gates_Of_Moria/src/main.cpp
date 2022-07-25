@@ -9,11 +9,14 @@
 
 const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
 volatile int stopButtonState = 0;     // current state of the stop button
+const uint8_t initiateActionButtonPin = 10; 
+uint8_t initiateActionButtonState = 0;          // current state of the action button
+uint8_t lastInitiateActionButtonState = 0;
 
 const bool DEBUG = false;
+const int debounceTime = 200;
 const uint8_t motor2Pin_directionToggle = 4;
 const uint8_t motor2Pin_runningLED = 7;
-const uint8_t motor2Pin_closeOpenButton = 10;
 const uint8_t motor2Pin_closeLimitSwitch = 8;
 const uint8_t motor2Pin_moveButton = 9;
 const long motor2_targetOpenPosition = 500;  // eventually 7000
@@ -25,6 +28,7 @@ const long motor2_targetOpenPosition = 500;  // eventually 7000
 // const uint8_t motor1Pin_moveButton = 9;
 
 elapsedMillis printTime;
+elapsedMillis lastInitiateActionTime;
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -66,7 +70,7 @@ AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 GOM_Motor motor2 = GOM_Motor(
   DEBUG, 
   GOM_Astepper2, 
-  motor2Pin_closeOpenButton, 
+  // motor2Pin_closeOpenButton, 
   motor2Pin_closeLimitSwitch, 
   motor2Pin_moveButton, 
   motor2Pin_directionToggle, 
@@ -91,6 +95,21 @@ void checkStopButton() {
   }
 }
 
+// When events happen, here is where we communicate to the
+// motors, leds, servos, sound, etc.
+// called from the main loop()
+void checkInitiateActionButton() {
+    if ( lastInitiateActionTime >= debounceTime) {
+    initiateActionButtonState = digitalRead(initiateActionButtonPin);
+    if (initiateActionButtonState != lastInitiateActionButtonState) {
+      // motor1.initiateAction(initiateActionButtonState);
+      motor2.initiateAction(initiateActionButtonState);
+      lastInitiateActionButtonState = initiateActionButtonState;
+      lastInitiateActionTime = 0;
+    }
+  }
+}
+
 void setup() {
   // if (DEBUG) {
     Serial.begin(9600);
@@ -103,6 +122,8 @@ void setup() {
   pinMode(stopButtonPin, INPUT);
   attachInterrupt(digitalPinToInterrupt(stopButtonPin), checkStopButton, RISING);
   
+  pinMode(initiateActionButtonPin, INPUT);
+
   AFMS.begin();
 
   // GOM_Astepper2.setMaxSpeed(6000);
@@ -114,7 +135,8 @@ void setup() {
 }
 
 void loop() {
-  // GOM_Astepper2.runSpeed();
+  checkInitiateActionButton();
+
   // motor1.run();
   motor2.run();
 

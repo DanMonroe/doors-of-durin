@@ -29,17 +29,14 @@ const int MAX_SPEED = 600;
 // const int MAX_SPEED = 6000;
 const int debounceTime = 200;
 
-// elapsedMillis lastMotorRunTime;
 elapsedMillis lastCloseLimitSwitchTime;
 elapsedMillis lastToggleTime;
 elapsedMillis lastMoveTime;
-elapsedMillis lastCloseOpenMoveTime;
 
 
 GOM_Motor::GOM_Motor(
     bool _debug, 
     AccelStepper _stepper, 
-    uint8_t _closeOpenButtonPin, 
     uint8_t _closeLimitSwitchPin, 
     uint8_t _moveButtonPin, 
     uint8_t _directionTogglePin, 
@@ -49,7 +46,6 @@ GOM_Motor::GOM_Motor(
   ) {
     DEBUG = _debug;
     stepper = _stepper;
-    closeOpenButtonPin = _closeOpenButtonPin;
     closeLimitSwitchPin = _closeLimitSwitchPin;
     moveButtonPin = _moveButtonPin;
     directionTogglePin = _directionTogglePin;
@@ -98,7 +94,6 @@ void GOM_Motor::setupMotor() {
     }
   }
   
-  pinMode(closeOpenButtonPin, INPUT);
   pinMode(moveButtonPin, INPUT);
   pinMode(directionTogglePin, INPUT_PULLUP);
 
@@ -150,41 +145,6 @@ void GOM_Motor::setState() {
         lastDirectionToggleState = directionToggleState;
         lastToggleTime = 0;
       }
-    }
-  }
-
-
-  if ( lastCloseOpenMoveTime >= debounceTime) {
-    closeOpenButtonState = digitalRead(closeOpenButtonPin);
-    if (closeOpenButtonState != lastCloseOpenButtonPinState) {
-
-      if (!initialized) {
-        if (closeOpenButtonState == HIGH) {
-          println("Starting to close to reset");
-          // Start to close the door
-          setSpeed(closingDirection * MAX_SPEED);
-          state = CLOSING;
-        }
-      } else {
-        if (closeOpenButtonState == HIGH) {
-          if(state == OPEN) {
-            // Door at max open position.
-            // put into CLOSING state and rely on limit switch to stop
-            currentSpeed = (closingDirection * MAX_SPEED);
-            setSpeed(currentSpeed);
-            state = CLOSING;
-          } else if (state == CLOSED) {
-            currentSpeed = (openingDirection * MAX_SPEED);
-            // Must call setSpeed AFTER moveTo
-            stepper.moveTo(targetOpenPosition);
-            setSpeed(currentSpeed);
-            state = OPENING;
-          }
-        }
-      }
-      lastCloseOpenButtonPinState = closeOpenButtonState;
-      lastCloseOpenMoveTime = 0;
-      println("");
     }
   }
 
@@ -281,6 +241,34 @@ void GOM_Motor::toggleDirection() {
   currentDirection = -1 * currentDirection;
 }
 
+// Called from the loop of main.cpp
+void GOM_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
+  if (actionButtonState == HIGH) {
+    print("INITIATE ACTION BUTTON PRESSED ");
+    println(actionButtonState);
+
+    if (!initialized) {
+      println("Starting to close to reset");
+      // Start to close the door
+      setSpeed(closingDirection * MAX_SPEED);
+      state = CLOSING;
+    } else {
+      if(state == OPEN) {
+        // Door at max open position.
+        // put into CLOSING state and rely on limit switch to stop
+        currentSpeed = (closingDirection * MAX_SPEED);
+        setSpeed(currentSpeed);
+        state = CLOSING;
+      } else if (state == CLOSED) {
+        currentSpeed = (openingDirection * MAX_SPEED);
+        // Must call setSpeed AFTER moveTo
+        stepper.moveTo(targetOpenPosition);
+        setSpeed(currentSpeed);
+        state = OPENING;
+      }
+    }
+  }
+}
 
 // Called from main app when stop button pressed
 void GOM_Motor::stopEverything(String name) {
