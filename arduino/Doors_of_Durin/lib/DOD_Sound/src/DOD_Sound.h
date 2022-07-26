@@ -2,7 +2,7 @@
 #define _DOD_Sound_h
 
 #include <Arduino.h>
-#include <Adafruit_VS1053.h>
+// #include <Adafruit_VS1053.h>
 
 class DOD_Sound {
   private:
