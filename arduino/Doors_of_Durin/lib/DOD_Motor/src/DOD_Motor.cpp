@@ -1,4 +1,4 @@
-#include "GOM_Motor.h"
+#include "DOD_Motor.h"
 
 #include <Arduino.h>
 #include <AccelStepper.h>
@@ -34,7 +34,7 @@ elapsedMillis lastToggleTime;
 elapsedMillis lastMoveTime;
 
 
-GOM_Motor::GOM_Motor(
+DOD_Motor::DOD_Motor(
     bool _debug, 
     AccelStepper _stepper, 
     uint8_t _closeLimitSwitchPin, 
@@ -57,23 +57,23 @@ GOM_Motor::GOM_Motor(
 
     targetOpenPosition = _targetOpenPosition;
 
-  // fwdstp = &GOM_Motor::forwardstep;
-	// bckwdstp = &GOM_Motor::backwardstep;
+  // fwdstp = &DOD_Motor::forwardstep;
+	// bckwdstp = &DOD_Motor::backwardstep;
 	// Adafruit_MotorShield AFMS (IICADDRESS);
 	// Adafruit_StepperMotor *AFstepper = AFMS.getStepper(200, 1); //M1 M2
 	// AccelStepper stepper(forwardstep, backwardstep);
 }
 // //go 1 step forward
-// void GOM_Motor::forwardstep() {
+// void DOD_Motor::forwardstep() {
 // 	AFstepper->onestep(FORWARD, DOUBLE);
 // }
 // //go 1 step backward
-// void GOM_Motor::backwardstep() {
+// void DOD_Motor::backwardstep() {
 // 	AFstepper->onestep(BACKWARD, DOUBLE);
 // }
 
 
-void GOM_Motor::setupMotor() {
+void DOD_Motor::setupMotor() {
 
   state = INIT;
 
@@ -104,7 +104,7 @@ void GOM_Motor::setupMotor() {
   println("");
 }
 
-void GOM_Motor::setState() {
+void DOD_Motor::setState() {
   // Close Limit Switch
   if ( lastCloseLimitSwitchTime >= debounceTime) {
     closeLimitSwitchState = digitalRead(closeLimitSwitchPin);
@@ -173,7 +173,7 @@ void GOM_Motor::setState() {
   }
 }
 
-void GOM_Motor::run() {
+void DOD_Motor::run() {
   setState();
 
   // INIT, RUNSPEED fall through to CLOSING
@@ -224,12 +224,12 @@ void GOM_Motor::run() {
   // } 
 }
 
-void GOM_Motor::setSpeed(int speed) {
+void DOD_Motor::setSpeed(int speed) {
   stepper.setSpeed(speed);
 }
 
 // Turns on/off running LED if running state changed
-void GOM_Motor::toggleRunningLEDIfNeeded() {
+void DOD_Motor::toggleRunningLEDIfNeeded() {
   if(runningLEDState != lastRunningLEDState) {
     digitalWrite(motorRunningLEDPin, runningLEDState);
     lastRunningLEDState = runningLEDState;
@@ -237,12 +237,12 @@ void GOM_Motor::toggleRunningLEDIfNeeded() {
 }
 
 // toggleDirection
-void GOM_Motor::toggleDirection() {
+void DOD_Motor::toggleDirection() {
   currentDirection = -1 * currentDirection;
 }
 
 // Called from the loop of main.cpp
-void GOM_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
+void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
   if (actionButtonState == HIGH) {
     print("INITIATE ACTION BUTTON PRESSED ");
     println(actionButtonState);
@@ -271,34 +271,34 @@ void GOM_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
 }
 
 // Called from main app when stop button pressed
-void GOM_Motor::stopEverything(String name) {
+void DOD_Motor::stopEverything(String name) {
   print(name);
   println(" stopEverything called");
   state = STOP;
 }
 
-void GOM_Motor::print(String val) {
+void DOD_Motor::print(String val) {
   if (DEBUG) {
     Serial.print(val);
   }
 }
-void GOM_Motor::println(String val) {
+void DOD_Motor::println(String val) {
   if (DEBUG) {
     Serial.println(val);
   }
 }
-void GOM_Motor::print(long val) {
+void DOD_Motor::print(long val) {
   if (DEBUG) {
     Serial.print(val);
   }
 }
-void GOM_Motor::println(long val) {
+void DOD_Motor::println(long val) {
   if (DEBUG) {
     Serial.println(val);
   }
 }
 
-void GOM_Motor::report(String name) {
+void DOD_Motor::report(String name) {
     float mSpeed = stepper.speed();
     println(name);
     print(" state: ");

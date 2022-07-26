@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include <GOM_Motor.h>
+#include <DOD_Motor.h>
 
 #include <AccelStepper.h>
 #include <Wire.h>
@@ -53,13 +53,13 @@ void backwardstep2() {
 }
 
 
-// AccelStepper GOM_Astepper1(forwardstep1, backwardstep1);
-AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
+// AccelStepper DOD_Astepper1(forwardstep1, backwardstep1);
+AccelStepper DOD_Astepper2(forwardstep2, backwardstep2);
 
 // startingDirection should be opposite for each motor;
-// GOM_Motor motor1 = GOM_Motor(
+// DOD_Motor motor1 = DOD_Motor(
 //   DEBUG, 
-//   GOM_Astepper1, 
+//   DOD_Astepper1, 
 //   motor1Pin_closeOpenButton, 
 //   motor1Pin_closeLimitSwitch, 
 //   motor1Pin_moveButton, 
@@ -67,9 +67,9 @@ AccelStepper GOM_Astepper2(forwardstep2, backwardstep2);
 //   motor1Pin_runningLED,
 //   1
 // );
-GOM_Motor motor2 = GOM_Motor(
+DOD_Motor motor2 = DOD_Motor(
   DEBUG, 
-  GOM_Astepper2, 
+  DOD_Astepper2, 
   // motor2Pin_closeOpenButton, 
   motor2Pin_closeLimitSwitch, 
   motor2Pin_moveButton, 
@@ -126,8 +126,8 @@ void setup() {
 
   AFMS.begin();
 
-  // GOM_Astepper2.setMaxSpeed(6000);
-  // GOM_Astepper2.setSpeed(6000);
+  // DOD_Astepper2.setMaxSpeed(6000);
+  // DOD_Astepper2.setSpeed(6000);
 
   // // setup motors
   // motor1.setupMotor();

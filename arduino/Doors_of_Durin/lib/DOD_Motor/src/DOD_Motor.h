@@ -1,5 +1,5 @@
-#ifndef _GOM_Motor_h
-#define _GOM_Motor_h
+#ifndef _DOD_Motor_h
+#define _DOD_Motor_h
 
 #include <Arduino.h>
 #include <AccelStepper.h>
@@ -12,7 +12,7 @@
  * @brief Gates of Moria Motor class
  * 
  */
-class GOM_Motor {
+class DOD_Motor {
   private:
     bool DEBUG = true;
     bool initialized = false;
@@ -62,7 +62,7 @@ class GOM_Motor {
 
   public:
 // uint8_t closeOpenButtonPin, 
-    GOM_Motor(
+    DOD_Motor(
       bool debug, 
       AccelStepper stepper, 
       uint8_t closeLimitSwitchPin, 
