@@ -77,6 +77,8 @@ class DOD_Motor {
     void setupMotor();
     void stopEverything(String name);
     void initiateAction(int actionButtonState);  // HIGH or LOW
+    int  getState();
+
 
     // void forwardstep();
 	  // void (*fwdstp)();

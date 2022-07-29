@@ -1,4 +1,5 @@
 #include "DOD_Motor.h"
+#include "motorStates.h"
 
 #include <Arduino.h>
 #include <AccelStepper.h>
@@ -7,18 +8,18 @@
 #include <elapsedMillis.h>
 
 
-// State definitions
-#define INIT 1
-#define CLOSING 2
-#define CLOSED 3
-#define RUNSPEED 4
-#define RUN 5
-#define RUN_HOME 6
-#define STOP 7
-#define STOP_NOW 8
-#define STOP_BY_CLOSE_LIMIT 9
-#define OPENING 10
-#define OPEN 11
+// // State definitions
+// #define MOTOR_STATE_INIT 1
+// #define MOTOR_STATE_CLOSING 2
+// #define MOTOR_STATE_CLOSED 3
+// #define MOTOR_STATE_RUNSPEED 4
+// #define MOTOR_STATE_RUN 5
+// #define MOTOR_STATE_RUN_HOME 6
+// #define MOTOR_STATE_STOP 7
+// #define MOTOR_STATE_STOP_NOW 8
+// #define MOTOR_STATE_STOP_BY_CLOSE_LIMIT 9
+// #define MOTOR_STATE_OPENING 10
+// #define MOTOR_STATE_OPEN 11
 
 volatile int state;
 
@@ -75,7 +76,7 @@ DOD_Motor::DOD_Motor(
 
 void DOD_Motor::setupMotor() {
 
-  state = INIT;
+  state = MOTOR_STATE_INIT;
 
   pinMode(motorRunningLEDPin, OUTPUT);
   digitalWrite(motorRunningLEDPin, runningLEDState);  // Start off
@@ -86,11 +87,11 @@ void DOD_Motor::setupMotor() {
   closeLimitSwitchState = digitalRead(closeLimitSwitchPin);
   lastCloseLimitSwitchState = closeLimitSwitchState;
   if (closeLimitSwitchState == LOW) {
-    state = STOP_BY_CLOSE_LIMIT;
+    state = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
     if (!initialized) {
       initialized = true;
       currentDirection = openingDirection;
-      state = CLOSED;
+      state = MOTOR_STATE_CLOSED;
     }
   }
   
@@ -113,13 +114,13 @@ void DOD_Motor::setState() {
         println("Limit Switch Closed");
 
         // If starting while the close limit switch is closed, set ready to open.
-        if (!initialized || state == CLOSING) {
+        if (!initialized || state == MOTOR_STATE_CLOSING) {
           println("Initialized");
           initialized = true;
           currentDirection = openingDirection;
-          state = CLOSED;
+          state = MOTOR_STATE_CLOSED;
         } else {
-          state = STOP_BY_CLOSE_LIMIT;
+          state = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
         }
       }
       lastCloseLimitSwitchState = closeLimitSwitchState;
@@ -128,7 +129,7 @@ void DOD_Motor::setState() {
   }
 
   // direction toggle only if the door is not closed.
-  if (state != CLOSED) {
+  if (state != MOTOR_STATE_CLOSED) {
     if ( lastToggleTime >= debounceTime) {
       directionToggleState = digitalRead(directionTogglePin);
       if (directionToggleState != lastDirectionToggleState) {
@@ -157,9 +158,9 @@ void DOD_Motor::setState() {
         println("Motor On");
         currentSpeed = (currentDirection * MAX_SPEED);
         setSpeed(currentSpeed);
-        state = RUNSPEED;
+        state = MOTOR_STATE_RUNSPEED;
       } else {
-        state = STOP;
+        state = MOTOR_STATE_STOP;
         println("Motor Off");
       }
       lastMoveButtonState = moveButtonState;
@@ -168,9 +169,13 @@ void DOD_Motor::setState() {
     }
   }
 
-  if (state == OPENING && stepper.distanceToGo() == 0) {
-    state = OPEN;
+  if (state == MOTOR_STATE_OPENING && stepper.distanceToGo() == 0) {
+    state = MOTOR_STATE_OPEN;
   }
+}
+
+int DOD_Motor::getState() {
+  return state;
 }
 
 void DOD_Motor::run() {
@@ -179,26 +184,26 @@ void DOD_Motor::run() {
   // INIT, RUNSPEED fall through to CLOSING
   // CLOSED, OPEN, STOP fall through to STOP_NOW
   switch(state) {
-    case INIT:
+    case MOTOR_STATE_INIT:
       break;
-    case RUNSPEED:
-    case CLOSING:
+    case MOTOR_STATE_RUNSPEED:
+    case MOTOR_STATE_CLOSING:
       runningLEDState = HIGH;
       stepper.runSpeed();
       break;
-    case OPENING:
+    case MOTOR_STATE_OPENING:
       if (initialized) {
         runningLEDState = HIGH;
         stepper.runSpeedToPosition();
       }
       break;
-    case CLOSED:
+    case MOTOR_STATE_CLOSED:
       currentDirection = openingDirection;
       stepper.setCurrentPosition(0);
-    case OPEN:
+    case MOTOR_STATE_OPEN:
       currentDirection = closingDirection;
-    case STOP:
-    case STOP_NOW:
+    case MOTOR_STATE_STOP:
+    case MOTOR_STATE_STOP_NOW:
       runningLEDState = LOW;
         // digitalWrite(sensorPin,LOW);    // removes interrupt signal
         // stepper.setAcceleration(200.0);  // this makes motor stop much quicker!
@@ -243,6 +248,7 @@ void DOD_Motor::toggleDirection() {
 
 // Called from the loop of main.cpp
 void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
+println("-----------------yo");
   if (actionButtonState == HIGH) {
     print("INITIATE ACTION BUTTON PRESSED ");
     println(actionButtonState);
@@ -251,20 +257,20 @@ void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
       println("Starting to close to reset");
       // Start to close the door
       setSpeed(closingDirection * MAX_SPEED);
-      state = CLOSING;
+      state = MOTOR_STATE_CLOSING;
     } else {
-      if(state == OPEN) {
+      if(state == MOTOR_STATE_OPEN) {
         // Door at max open position.
         // put into CLOSING state and rely on limit switch to stop
         currentSpeed = (closingDirection * MAX_SPEED);
         setSpeed(currentSpeed);
-        state = CLOSING;
-      } else if (state == CLOSED) {
+        state = MOTOR_STATE_CLOSING;
+      } else if (state == MOTOR_STATE_CLOSED) {
         currentSpeed = (openingDirection * MAX_SPEED);
         // Must call setSpeed AFTER moveTo
         stepper.moveTo(targetOpenPosition);
         setSpeed(currentSpeed);
-        state = OPENING;
+        state = MOTOR_STATE_OPENING;
       }
     }
   }
@@ -274,7 +280,7 @@ void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
 void DOD_Motor::stopEverything(String name) {
   print(name);
   println(" stopEverything called");
-  state = STOP;
+  state = MOTOR_STATE_STOP;
 }
 
 void DOD_Motor::print(String val) {
@@ -303,37 +309,37 @@ void DOD_Motor::report(String name) {
     println(name);
     print(" state: ");
     switch(state) {
-      case INIT:
+      case MOTOR_STATE_INIT:
         println("INIT");
         break;
-      case CLOSING:
+      case MOTOR_STATE_CLOSING:
         println("CLOSING");
         break;
-      case CLOSED:
+      case MOTOR_STATE_CLOSED:
         println("CLOSED");
         break;
-      case RUNSPEED:
+      case MOTOR_STATE_RUNSPEED:
         println("RUNSPEED");
         break;
-      case RUN:
+      case MOTOR_STATE_RUN:
         println("RUN");
         break;
-      case RUN_HOME:
+      case MOTOR_STATE_RUN_HOME:
         println("RUN_HOME");
         break;
-      case STOP:
+      case MOTOR_STATE_STOP:
         println("STOP");
         break;
-      case STOP_NOW:
+      case MOTOR_STATE_STOP_NOW:
         println("STOP_NOW");
         break;
-      case STOP_BY_CLOSE_LIMIT:
+      case MOTOR_STATE_STOP_BY_CLOSE_LIMIT:
         println("STOP_BY_CLOSE_LIMIT");
         break;
-      case OPENING:
+      case MOTOR_STATE_OPENING:
         println("OPENING");
         break;
-      case OPEN:
+      case MOTOR_STATE_OPEN:
         println("OPEN");
         break;
       default:

@@ -14,15 +14,17 @@
 #include <SD.h>
 
 
-DOD_Sound* sound = new DOD_Sound();
+DOD_Sound *sound = new DOD_Sound();
 
-const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
+// const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
+// const uint8_t initiateActionButtonPin = 11; 
 volatile int stopButtonState = 0;     // current state of the stop button
-const uint8_t initiateActionButtonPin = 11; 
 uint8_t initiateActionButtonState = 0;          // current state of the action button
 uint8_t lastInitiateActionButtonState = 0;
 
-const bool DEBUG = false;
+int motorState = 0;
+
+const bool DEBUG = true;
 const int debounceTime = 200;
 
 elapsedMillis printTime;
@@ -88,7 +90,7 @@ void stopEverything() {
 }
 
 void checkStopButton() {
-  stopButtonState = digitalRead(stopButtonPin);
+  stopButtonState = digitalRead(DOD_PIN_stopButton);
   if (stopButtonState == HIGH) {
     stopEverything();
   }
@@ -99,13 +101,17 @@ void checkStopButton() {
 // called from the main loop()
 void checkInitiateActionButton() {
     if ( lastInitiateActionTime >= debounceTime) {
-    initiateActionButtonState = digitalRead(initiateActionButtonPin);
+    initiateActionButtonState = digitalRead(DOD_PIN_initiateActionButtonPin);
     if (initiateActionButtonState != lastInitiateActionButtonState) {
+Serial.print("----------------- yoyoyo: ");
+Serial.println(initiateActionButtonState);
       // motor1.initiateAction(initiateActionButtonState);
       motor2.initiateAction(initiateActionButtonState);
+Serial.println("   done");
       lastInitiateActionButtonState = initiateActionButtonState;
       lastInitiateActionTime = 0;
     }
+// delay(2000);
   }
 }
 
@@ -124,10 +130,12 @@ void setup() {
   // }
 
   // Setup Emergency STOP button  
-  pinMode(stopButtonPin, INPUT);
-  attachInterrupt(digitalPinToInterrupt(stopButtonPin), checkStopButton, RISING);
+  pinMode(DOD_PIN_stopButton, INPUT);
+  attachInterrupt(digitalPinToInterrupt(DOD_PIN_stopButton), checkStopButton, RISING);
   
-  pinMode(initiateActionButtonPin, INPUT);
+  Serial.print("DOD_PIN_initiateActionButtonPin ");
+  Serial.println(DOD_PIN_initiateActionButtonPin);
+  pinMode(DOD_PIN_initiateActionButtonPin, INPUT);
 
   AFMS.begin();
 
@@ -139,12 +147,15 @@ void setup() {
 }
 
 void loop() {
-  sound->run();
 
   checkInitiateActionButton();
 
   // motor1.run();
   motor2.run();
+
+  motorState = motor2.getState();
+  
+  sound->run(motorState);
 
   if (printTime >= 1000) {
     printTime = 0;

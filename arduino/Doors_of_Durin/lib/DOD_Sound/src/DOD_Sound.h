@@ -9,12 +9,15 @@
 
 class DOD_Sound {
   private:
+    void playSound(const char * soundName);
     void printDirectory(File dir, int numTabs);
+    void stopIfPlaying();
+    int lastMotorState = 0;
 
   public:
     DOD_Sound();
     void setup();
-    void run();
+    void run(int motorState);
 };
 
 #endif
