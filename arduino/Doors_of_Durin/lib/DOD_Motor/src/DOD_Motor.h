@@ -14,7 +14,7 @@
  */
 class DOD_Motor {
   private:
-    bool DEBUG = true;
+    bool DEBUG = false;
     bool initialized = false;
 
     AccelStepper stepper;

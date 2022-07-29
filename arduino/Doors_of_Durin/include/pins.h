@@ -44,10 +44,10 @@ const int DOD_PIN_initiateActionButtonPin = 14;
  * 
  */
 const uint8_t motor2Pin_directionToggle = 5;
-const uint8_t motor2Pin_runningLED = 7;
-const uint8_t motor2Pin_closeLimitSwitch = 8;
-const uint8_t motor2Pin_moveButton = 9;
-const long motor2_targetOpenPosition = 500;  // eventually 7000
+const uint8_t motor2Pin_runningLED = 15;
+const uint8_t motor2Pin_closeLimitSwitch = 8; // TODO  This conflicts above
+const uint8_t motor2Pin_moveButton = 9;       // TODO  This conflicts above
+const long motor2_targetOpenPosition = 500;   // TODO  eventually 7000
 
 
 #endif

@@ -14,22 +14,19 @@
 #include <SD.h>
 
 
-DOD_Sound *sound = new DOD_Sound();
-
-// const uint8_t stopButtonPin = 2; // Button to perform stop everything interrupt
-// const uint8_t initiateActionButtonPin = 11; 
-volatile int stopButtonState = 0;     // current state of the stop button
-uint8_t initiateActionButtonState = 0;          // current state of the action button
+volatile int stopButtonState = 0;           // current state of the stop button (on interrupt)
+uint8_t initiateActionButtonState = 0;      // current state of the action button
 uint8_t lastInitiateActionButtonState = 0;
 
 int motorState = 0;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 const int debounceTime = 200;
 
 elapsedMillis printTime;
 elapsedMillis lastInitiateActionTime;
 
+DOD_Sound *sound = new DOD_Sound(DEBUG);
 
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -103,15 +100,11 @@ void checkInitiateActionButton() {
     if ( lastInitiateActionTime >= debounceTime) {
     initiateActionButtonState = digitalRead(DOD_PIN_initiateActionButtonPin);
     if (initiateActionButtonState != lastInitiateActionButtonState) {
-Serial.print("----------------- yoyoyo: ");
-Serial.println(initiateActionButtonState);
       // motor1.initiateAction(initiateActionButtonState);
       motor2.initiateAction(initiateActionButtonState);
-Serial.println("   done");
       lastInitiateActionButtonState = initiateActionButtonState;
       lastInitiateActionTime = 0;
     }
-// delay(2000);
   }
 }
 
