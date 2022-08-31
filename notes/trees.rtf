@@ -1,15 +1,19 @@
 {\rtf1\ansi\ansicpg1252\cocoartf2639
 \cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 LucidaGrande;\f2\fnil\fcharset0 LucidaGrande-Bold;
+\f3\fnil\fcharset0 HelveticaNeue;\f4\fnil\fcharset0 .AppleSystemUIFontMonospaced-Regular;}
+{\colortbl;\red255\green255\blue255;\red38\green38\blue38;\red255\green255\blue255;\red27\green31\blue35;
 }
-{\colortbl;\red255\green255\blue255;\red38\green38\blue38;\red255\green255\blue255;}
-{\*\expandedcolortbl;;\cssrgb\c20000\c20000\c20000;\cssrgb\c100000\c100000\c100000;}
-\margl1440\margr1440\vieww16620\viewh12360\viewkind0
+{\*\expandedcolortbl;;\cssrgb\c20000\c20000\c20000;\cssrgb\c100000\c100000\c100000;\cssrgb\c14118\c16078\c18431;
+}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid1\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li720\lin720 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\margl1440\margr1440\vieww11820\viewh8700\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
 
 \f0\fs48 \cf0 Trees for the Gates of Moria\
 \
 
-\fs24 Muslin cloth soaked with mixture of glue and paint.  Maybe water as well?\
+\fs24 Muslin cloth soaked with mixture of glue and paint.  Maybe water as well?	\
 \
 \
 LED note:\
@@ -22,4 +26,28 @@ http://fastled.io/\
 \f1\fs36 \AppleTypeServices\AppleTypeServicesF65539 \cf2 \cb3 \expnd0\expndtw0\kerning0
 Place a\'a0
 \f2\b \AppleTypeServices\AppleTypeServicesF65539 300 to 500 Ohm resistor
-\f1\b0 \AppleTypeServices\AppleTypeServicesF65539 \'a0between the Arduino data output pin and the input to the first NeoPixel. The resistor should be at the end of the wire closest to the NeoPixel(s), not the microcontroller.\'a0}
+\f1\b0 \AppleTypeServices\AppleTypeServicesF65539 \'a0between the Arduino data output pin and the input to the first NeoPixel. The resistor should be at the end of the wire closest to the NeoPixel(s), not the microcontroller.\'a0\
+\
+\pard\pardeftab720\sa320\partightenfactor0
+
+\f3\fs32 \AppleTypeServices \cf4 \cb3 \outl0\strokewidth0 \strokec4 Some of these are just good engineering. Some are just plain voodoo. Use whichever ones that work for you.\
+\pard\tx220\tx720\pardeftab720\li720\fi-720\partightenfactor0
+\ls1\ilvl0\cf4 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 At the 'far' end of long LED strips, connect the Data line to Ground.\cb1 \
+\ls1\ilvl0\cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 Insert a 200 ohm resistor between the output pins on the microcontroller and the inputs (data, clock) on the LED strip.\cb1 \
+\ls1\ilvl0\cb3 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 Use a level-shifter to raise the voltage of the output pins' 3.3 volts to a full 5 volts before sending it into the LED strip's data (and/or clock) inputs.\cb1 \
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 \
+\ls1\ilvl0\kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}
+\f4\fs27\fsmilli13600 \cf4 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4 // limit my draw to 1A at 5v of power draw\
+\pard\pardeftab720\partightenfactor0
+\ls1\ilvl0\cf4 \kerning1\expnd0\expndtw0 \outl0\strokewidth0 {\listtext	\uc0\u8226 	}\expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec4    FastLED.setMaxPowerInVoltsAndMilliamps(5,1000); \
+\pard\tx720\pardeftab720\partightenfactor0
+
+\f3\fs32 \cf4 \strokec4 \
+\
+}

@@ -3,6 +3,7 @@
 #include "pins.h"
 #include <DOD_Motor.h>
 #include <DOD_Sound.h>
+#include <DOD_PixelStrips.h>
 
 #include <AccelStepper.h>
 #include <Wire.h>
