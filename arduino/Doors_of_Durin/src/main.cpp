@@ -21,11 +21,17 @@ uint8_t lastInitiateActionButtonState = 0;
 
 int motorState = 0;
 
+const bool MOTORS_ENABLED = false;
+const bool SOUND_ENABLED = false;
+const bool LEDS_ENABLED = true;
+
 const bool DEBUG = false;
 const int debounceTime = 200;
 
 elapsedMillis printTime;
 elapsedMillis lastInitiateActionTime;
+
+DOD_PixelStrips *strips = new DOD_PixelStrips();
 
 DOD_Sound *sound = new DOD_Sound(DEBUG);
 
@@ -82,9 +88,11 @@ DOD_Motor motor2 = DOD_Motor(
 // Set state on all motors to STOP
 void stopEverything() {
   Serial.println("STOP!");
-  // motor1.stopEverything("Motor 1");
-  motor2.stopEverything("Motor 2");
-  stepper2->release();
+  if (MOTORS_ENABLED) {
+    // motor1.stopEverything("Motor 1");
+    motor2.stopEverything("Motor 2");
+    stepper2->release();
+  }
 }
 
 void checkStopButton() {
@@ -101,8 +109,10 @@ void checkInitiateActionButton() {
     if ( lastInitiateActionTime >= debounceTime) {
     initiateActionButtonState = digitalRead(DOD_PIN_initiateActionButtonPin);
     if (initiateActionButtonState != lastInitiateActionButtonState) {
-      // motor1.initiateAction(initiateActionButtonState);
-      motor2.initiateAction(initiateActionButtonState);
+      if (MOTORS_ENABLED) {
+        // motor1.initiateAction(initiateActionButtonState);
+        motor2.initiateAction(initiateActionButtonState);
+      }
       lastInitiateActionButtonState = initiateActionButtonState;
       lastInitiateActionTime = 0;
     }
@@ -131,29 +141,46 @@ void setup() {
   Serial.println(DOD_PIN_initiateActionButtonPin);
   pinMode(DOD_PIN_initiateActionButtonPin, INPUT);
 
-  AFMS.begin();
+  if (SOUND_ENABLED) {
+    sound->setup();
+  }
 
-  sound->setup();
+  if (LEDS_ENABLED) {
+    strips->setupStrips();
+  }
 
-  // // setup motors
-  // motor1.setupMotor();
-  motor2.setupMotor();
+  if (MOTORS_ENABLED) {
+    AFMS.begin();
+    // // setup motors
+    // motor1.setupMotor();
+    motor2.setupMotor();
+  }
 }
 
 void loop() {
 
   checkInitiateActionButton();
 
-  // motor1.run();
-  motor2.run();
+  if (MOTORS_ENABLED) {
+    // motor1.run();
+    motor2.run();
 
-  motorState = motor2.getState();
+    motorState = motor2.getState();
+  }
   
-  sound->run(motorState);
+  if (SOUND_ENABLED) {
+    sound->run(motorState);
+  }
+
+  if (LEDS_ENABLED) {
+    strips->loop();
+  }
 
   if (printTime >= 1000) {
     printTime = 0;
-  //   // motor1.report("Motor 1");
-    motor2.report("Motor 2");
+    if (MOTORS_ENABLED) {
+    //   // motor1.report("Motor 1");
+      motor2.report("Motor 2");
+    }
   } 
 }

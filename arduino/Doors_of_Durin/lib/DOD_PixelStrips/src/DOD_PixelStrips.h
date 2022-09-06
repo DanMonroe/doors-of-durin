@@ -2,6 +2,18 @@
 #define _dodPixelStrip_h
 
 #include <DOD_Pixel.h>
+#include <FastLED.h>
+#include <Arduino.h>
+
+// CRGBPalette16 pacifica_palette_1 = 
+//     { 0x000507, 0x000409, 0x00030B, 0x00030D, 0x000210, 0x000212, 0x000114, 0x000117, 
+//       0x000019, 0x00001C, 0x000026, 0x000031, 0x00003B, 0x000046, 0x14554B, 0x28AA50 };
+// CRGBPalette16 pacifica_palette_2 = 
+//     { 0x000507, 0x000409, 0x00030B, 0x00030D, 0x000210, 0x000212, 0x000114, 0x000117, 
+//       0x000019, 0x00001C, 0x000026, 0x000031, 0x00003B, 0x000046, 0x0C5F52, 0x19BE5F };
+// CRGBPalette16 pacifica_palette_3 = 
+//     { 0x000208, 0x00030E, 0x000514, 0x00061A, 0x000820, 0x000927, 0x000B2D, 0x000C33, 
+//       0x000E39, 0x001040, 0x001450, 0x001860, 0x001C70, 0x002080, 0x1040BF, 0x2060FF };
 
 class DOD_PixelStrips
 {
@@ -10,6 +22,12 @@ private:
   DOD_Pixel right[276];
 
 public:
+  void pacifica_loop();
+  void pacifica_add_whitecaps();
+  void pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff);
+  void pacifica_deepen_colors();
+  void setupStrips();
+  void loop();
   ~DOD_PixelStrips() {}
   DOD_PixelStrips()
   {
@@ -319,6 +337,322 @@ public:
     left[284] = DOD_Pixel(285, 44, 12);
     left[285] = DOD_Pixel(286, 44, 14);
     left[286] = DOD_Pixel(287, 44, 17);
+
+    // Right
+    right[0] = DOD_Pixel(1, 44, 8);
+    right[1] = DOD_Pixel(2, 44, 10);
+    right[2] = DOD_Pixel(3, 44, 13);
+    right[3] = DOD_Pixel(4, 44, 15);
+    right[4] = DOD_Pixel(5, 44, 18);
+    right[5] = DOD_Pixel(6, 44, 20);
+    right[6] = DOD_Pixel(7, 44, 23);
+    right[7] = DOD_Pixel(8, 44, 25);
+    right[8] = DOD_Pixel(9, 44, 28);
+    right[9] = DOD_Pixel(10, 44, 31);
+    right[10] = DOD_Pixel(11, 44, 35);
+    right[11] = DOD_Pixel(12, 44, 38);
+    right[12] = DOD_Pixel(13, 44, 40);
+    right[13] = DOD_Pixel(14, 44, 43);
+
+    right[14] = DOD_Pixel(15, 40, 33);
+    right[15] = DOD_Pixel(16, 42, 36);
+    right[16] = DOD_Pixel(17, 44, 38);
+    right[17] = DOD_Pixel(18, 45, 40);
+    right[18] = DOD_Pixel(19, 46, 42);
+    right[19] = DOD_Pixel(20, 48, 44);
+    right[20] = DOD_Pixel(21, 49, 46);
+    right[21] = DOD_Pixel(22, 51, 48);
+
+    right[22] = DOD_Pixel(23, 44, 48);
+    right[23] = DOD_Pixel(24, 44, 50);
+    right[24] = DOD_Pixel(25, 44, 52);
+    right[25] = DOD_Pixel(26, 44, 54);
+    right[26] = DOD_Pixel(27, 44, 57);
+    right[27] = DOD_Pixel(28, 44, 60);
+
+    right[28] = DOD_Pixel(29, 34, 60);
+    right[29] = DOD_Pixel(30, 36, 62);
+    right[30] = DOD_Pixel(31, 39, 64);
+    right[31] = DOD_Pixel(32, 41, 66);
+    right[32] = DOD_Pixel(33, 43, 68);
+    right[33] = DOD_Pixel(34, 45, 70);
+    right[34] = DOD_Pixel(35, 47, 72);
+
+    right[35] = DOD_Pixel(36, 44, 73);
+    right[36] = DOD_Pixel(37, 44, 75);
+    right[37] = DOD_Pixel(38, 44, 78);
+    right[38] = DOD_Pixel(39, 44, 81);
+
+    right[39] = DOD_Pixel(40, 46, 82);
+    right[40] = DOD_Pixel(41, 44, 82);
+    right[41] = DOD_Pixel(42, 43, 82);
+    right[42] = DOD_Pixel(43, 39, 82);
+    right[43] = DOD_Pixel(44, 36, 82);
+    right[44] = DOD_Pixel(45, 33, 82);
+    right[45] = DOD_Pixel(46, 30, 82);
+
+    right[46] = DOD_Pixel(47, 31, 86);
+    right[47] = DOD_Pixel(48, 33, 86);
+    right[48] = DOD_Pixel(49, 36, 86);
+    right[49] = DOD_Pixel(50, 39, 86);
+    right[50] = DOD_Pixel(51, 42, 86);
+    right[51] = DOD_Pixel(52, 45, 86);
+
+    right[52] = DOD_Pixel(53, 45, 90);
+    right[53] = DOD_Pixel(54, 44, 92);
+    right[54] = DOD_Pixel(55, 43, 95);
+    right[55] = DOD_Pixel(56, 42, 97);
+    right[56] = DOD_Pixel(57, 41, 99);
+    right[57] = DOD_Pixel(58, 40, 102);
+
+    right[58] = DOD_Pixel(59, 37, 106);
+    right[59] = DOD_Pixel(60, 35, 108);
+    right[60] = DOD_Pixel(61, 32, 109);
+    right[61] = DOD_Pixel(62, 30, 111);
+    right[62] = DOD_Pixel(63, 28, 113);
+    right[63] = DOD_Pixel(64, 26, 114);
+    right[64] = DOD_Pixel(65, 24, 116);
+    right[65] = DOD_Pixel(66, 22, 118);
+
+    right[66] = DOD_Pixel(67, 40, 118);
+    right[67] = DOD_Pixel(68, 37, 116);
+
+    right[68] = DOD_Pixel(69, 18, 119);
+    right[69] = DOD_Pixel(70, 16, 120);
+    right[70] = DOD_Pixel(71, 14, 121);
+    right[71] = DOD_Pixel(72, 11, 122);
+    right[72] = DOD_Pixel(73, 8, 122);
+    right[73] = DOD_Pixel(74, 6, 123);
+    right[74] = DOD_Pixel(75, 3, 124);
+
+    right[75] = DOD_Pixel(76, 6, 118);  // Speak
+    right[76] = DOD_Pixel(77, 8, 118);  // Speak
+    right[77] = DOD_Pixel(78, 11, 117); // Speak
+    right[78] = DOD_Pixel(79, 14, 116); // Speak
+    right[79] = DOD_Pixel(80, 16, 116); // Speak
+
+    right[80] = DOD_Pixel(81, 21, 114); // Friend
+    right[81] = DOD_Pixel(82, 23, 112); // Friend
+    right[82] = DOD_Pixel(83, 25, 110); // Friend
+    right[83] = DOD_Pixel(84, 27, 109); // Friend
+    right[84] = DOD_Pixel(85, 29, 108); // Friend
+    right[85] = DOD_Pixel(86, 31, 107); // Friend
+    right[86] = DOD_Pixel(87, 33, 106); // Friend
+
+    right[87] = DOD_Pixel(88, 35, 103); // and
+    right[88] = DOD_Pixel(89, 36, 101); // and
+    right[89] = DOD_Pixel(90, 37, 98);  // enter
+    right[90] = DOD_Pixel(91, 38, 95);  // enter
+    right[91] = DOD_Pixel(92, 39, 92);  // enter
+    right[92] = DOD_Pixel(93, 40, 89);  // enter
+
+    right[93] = DOD_Pixel(94, 35, 89);
+    right[94] = DOD_Pixel(95, 34, 91);
+    right[95] = DOD_Pixel(96, 33, 93);
+    right[96] = DOD_Pixel(97, 32, 96);
+    right[97] = DOD_Pixel(98, 31, 99);
+
+    right[98] = DOD_Pixel(99, 28, 102);
+    right[99] = DOD_Pixel(100, 26, 104);
+    right[100] = DOD_Pixel(101, 24, 106);
+    right[101] = DOD_Pixel(102, 22, 108);
+    right[102] = DOD_Pixel(103, 20, 110);
+    right[103] = DOD_Pixel(104, 18, 112);
+
+    right[104] = DOD_Pixel(105, 14, 110);
+    right[105] = DOD_Pixel(106, 12, 111);
+    right[106] = DOD_Pixel(107, 9, 112);
+    right[107] = DOD_Pixel(108, 6, 113);
+    right[108] = DOD_Pixel(109, 3, 114);
+    right[109] = DOD_Pixel(110, 1, 115);
+
+    right[110] = DOD_Pixel(111, 1, 108);
+    right[111] = DOD_Pixel(112, 1, 110);
+    right[112] = DOD_Pixel(113, 2, 112);
+    right[113] = DOD_Pixel(114, 2, 100);
+    right[114] = DOD_Pixel(115, 2, 98);
+    right[115] = DOD_Pixel(116, 3, 95);
+    right[116] = DOD_Pixel(117, 3, 92);
+
+    right[117] = DOD_Pixel(118, 6, 95);
+    right[118] = DOD_Pixel(119, 6, 97);
+    right[119] = DOD_Pixel(120, 6, 99);
+
+    right[120] = DOD_Pixel(121, 7, 103);
+    right[121] = DOD_Pixel(122, 9, 101);
+    right[122] = DOD_Pixel(123, 11, 99);
+    right[123] = DOD_Pixel(124, 13, 97);
+    right[124] = DOD_Pixel(125, 15, 96);
+    right[125] = DOD_Pixel(126, 17, 95);
+
+    right[126] = DOD_Pixel(127, 5, 85);
+    right[127] = DOD_Pixel(128, 2, 85);
+
+    right[128] = DOD_Pixel(129, 1, 82);
+    right[129] = DOD_Pixel(130, 3, 82);
+    right[130] = DOD_Pixel(131, 5, 82);
+    // Power bus
+    right[131] = DOD_Pixel(132, 32, 76);
+    right[132] = DOD_Pixel(133, 32, 74);
+    right[133] = DOD_Pixel(134, 32, 71);
+    right[134] = DOD_Pixel(135, 32, 69);
+    right[135] = DOD_Pixel(136, 32, 66);
+    right[136] = DOD_Pixel(137, 31, 64);
+    right[137] = DOD_Pixel(138, 31, 61);
+    right[138] = DOD_Pixel(139, 31, 59);
+    right[139] = DOD_Pixel(140, 31, 56);
+    right[140] = DOD_Pixel(141, 31, 54);
+    right[141] = DOD_Pixel(142, 31, 51);
+    right[142] = DOD_Pixel(143, 30, 49);
+    right[143] = DOD_Pixel(144, 30, 46);
+    right[144] = DOD_Pixel(145, 30, 44);
+    right[145] = DOD_Pixel(146, 30, 41);
+    right[146] = DOD_Pixel(147, 30, 39);
+    right[147] = DOD_Pixel(148, 30, 36);
+    right[148] = DOD_Pixel(149, 30, 34);
+    right[149] = DOD_Pixel(150, 30, 31);
+    right[150] = DOD_Pixel(151, 29, 29);
+    right[151] = DOD_Pixel(152, 29, 26);
+    right[152] = DOD_Pixel(153, 29, 24);
+    right[153] = DOD_Pixel(154, 29, 21);
+    right[154] = DOD_Pixel(155, 29, 19);
+    right[155] = DOD_Pixel(156, 29, 16);
+    right[156] = DOD_Pixel(157, 29, 12);
+    right[157] = DOD_Pixel(158, 29, 10);
+
+    right[158] = DOD_Pixel(159, 27, 4);
+    right[159] = DOD_Pixel(160, 29, 4);
+    right[160] = DOD_Pixel(161, 32, 4);
+    right[161] = DOD_Pixel(162, 35, 4);
+    right[162] = DOD_Pixel(163, 38, 4);
+    right[163] = DOD_Pixel(164, 40, 4);
+    right[164] = DOD_Pixel(165, 43, 4);
+    right[165] = DOD_Pixel(166, 45, 4);
+
+    right[166] = DOD_Pixel(167, 44, 1);
+    right[167] = DOD_Pixel(168, 41, 1);
+    right[168] = DOD_Pixel(169, 38, 1);
+    right[169] = DOD_Pixel(170, 36, 1);
+    right[170] = DOD_Pixel(171, 34, 1);
+    right[171] = DOD_Pixel(172, 31, 1);
+    right[172] = DOD_Pixel(173, 29, 1);
+    right[173] = DOD_Pixel(174, 26, 1);
+    right[174] = DOD_Pixel(175, 23, 1);
+    right[175] = DOD_Pixel(176, 21, 1);
+    right[176] = DOD_Pixel(177, 18, 1);
+    right[177] = DOD_Pixel(178, 16, 1);
+    right[178] = DOD_Pixel(179, 13, 1);
+    right[179] = DOD_Pixel(180, 10, 1);
+    right[180] = DOD_Pixel(181, 8, 1);
+    right[181] = DOD_Pixel(182, 5, 1);
+    right[182] = DOD_Pixel(183, 2, 1);
+
+    right[183] = DOD_Pixel(184, 16, 5);
+    right[184] = DOD_Pixel(185, 18, 7);
+    right[185] = DOD_Pixel(186, 20, 9);
+    right[186] = DOD_Pixel(187, 22, 11);
+    right[187] = DOD_Pixel(188, 24, 13);
+    right[188] = DOD_Pixel(189, 26, 15);
+
+    right[189] = DOD_Pixel(190, 28, 41);
+    right[190] = DOD_Pixel(191, 28, 43);
+    right[191] = DOD_Pixel(192, 28, 46);
+    right[192] = DOD_Pixel(193, 28, 48);
+    right[193] = DOD_Pixel(194, 28, 51);
+    right[194] = DOD_Pixel(195, 28, 53);
+    right[195] = DOD_Pixel(196, 28, 55);
+    right[196] = DOD_Pixel(197, 28, 58);
+    right[197] = DOD_Pixel(198, 28, 60);
+    right[198] = DOD_Pixel(199, 28, 63);
+    right[199] = DOD_Pixel(200, 28, 66);
+    right[200] = DOD_Pixel(201, 28, 69);
+    right[201] = DOD_Pixel(202, 28, 72);
+    right[202] = DOD_Pixel(203, 28, 74);
+    right[203] = DOD_Pixel(204, 28, 77);
+
+    right[204] = DOD_Pixel(205, 25, 78);
+    right[205] = DOD_Pixel(206, 25, 76);
+    right[206] = DOD_Pixel(207, 25, 73);
+    right[207] = DOD_Pixel(208, 25, 70);
+    right[208] = DOD_Pixel(209, 25, 68);
+    right[209] = DOD_Pixel(210, 25, 66);
+    right[210] = DOD_Pixel(211, 25, 64);
+    right[211] = DOD_Pixel(212, 25, 61);
+    right[212] = DOD_Pixel(213, 25, 58);
+    right[213] = DOD_Pixel(214, 25, 56);
+    right[214] = DOD_Pixel(215, 25, 54);
+    right[215] = DOD_Pixel(216, 25, 51);
+    right[216] = DOD_Pixel(217, 25, 48);
+    right[217] = DOD_Pixel(218, 25, 46);
+    right[218] = DOD_Pixel(219, 25, 44);
+    right[219] = DOD_Pixel(220, 25, 41);
+    right[220] = DOD_Pixel(221, 25, 39);
+    right[221] = DOD_Pixel(222, 25, 36);
+    right[222] = DOD_Pixel(223, 25, 33);
+    right[223] = DOD_Pixel(224, 25, 30);
+    right[224] = DOD_Pixel(225, 25, 27);
+    right[225] = DOD_Pixel(226, 25, 24);
+    right[226] = DOD_Pixel(227, 25, 21);
+    right[227] = DOD_Pixel(228, 25, 18);
+
+    right[228] = DOD_Pixel(229, 2, 15);
+    right[229] = DOD_Pixel(230, 5, 15);
+
+    right[230] = DOD_Pixel(231, 2, 41);
+    right[231] = DOD_Pixel(232, 2, 43);
+    right[232] = DOD_Pixel(233, 2, 47);
+
+    right[233] = DOD_Pixel(234, 14, 44);
+    right[234] = DOD_Pixel(235, 16, 46);
+    right[235] = DOD_Pixel(236, 18, 48);
+
+    right[236] = DOD_Pixel(237, 19, 44);
+    right[237] = DOD_Pixel(238, 18, 42);
+    right[238] = DOD_Pixel(239, 17, 39);
+
+    right[239] = DOD_Pixel(240, 23, 40);
+    right[240] = DOD_Pixel(241, 22, 43);
+    right[241] = DOD_Pixel(242, 21, 45);
+    right[242] = DOD_Pixel(243, 20, 47);
+    right[243] = DOD_Pixel(244, 19, 50);
+    right[244] = DOD_Pixel(245, 18, 52);
+    right[245] = DOD_Pixel(246, 17, 55);
+    right[246] = DOD_Pixel(247, 16, 57);
+
+    right[247] = DOD_Pixel(248, 23, 32);
+    right[248] = DOD_Pixel(249, 22, 35);
+
+    right[249] = DOD_Pixel(250, 23, 60);
+    right[250] = DOD_Pixel(251, 21, 62);
+    right[251] = DOD_Pixel(252, 19, 64);
+
+    right[252] = DOD_Pixel(253, 15, 55);
+    right[253] = DOD_Pixel(254, 13, 54);
+    right[254] = DOD_Pixel(255, 11, 53);
+
+    right[255] = DOD_Pixel(256, 7, 54);
+    right[256] = DOD_Pixel(257, 7, 56);
+    right[257] = DOD_Pixel(258, 7, 59);
+
+    right[258] = DOD_Pixel(259, 4, 60);
+    right[259] = DOD_Pixel(260, 6, 61);
+    right[260] = DOD_Pixel(261, 8, 62);
+    right[261] = DOD_Pixel(262, 10, 63);
+    right[262] = DOD_Pixel(263, 12, 64);
+    right[263] = DOD_Pixel(264, 14, 66);
+    right[264] = DOD_Pixel(265, 16, 67);
+    right[265] = DOD_Pixel(266, 18, 68);
+    right[266] = DOD_Pixel(267, 20, 69);
+
+    right[267] = DOD_Pixel(268, 22, 78);
+    right[268] = DOD_Pixel(269, 20, 76);
+    right[269] = DOD_Pixel(270, 18, 74);
+    right[270] = DOD_Pixel(271, 16, 72);
+    right[271] = DOD_Pixel(272, 14, 70);
+    right[272] = DOD_Pixel(273, 12, 68);
+    right[273] = DOD_Pixel(274, 10, 66);
+    right[274] = DOD_Pixel(275, 8, 64);
+    right[275] = DOD_Pixel(276, 6, 62);
   };
 };
 

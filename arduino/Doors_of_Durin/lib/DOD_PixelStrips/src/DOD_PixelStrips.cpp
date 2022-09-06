@@ -1,317 +1,165 @@
-// #include "DOD_LedMap.h"
+#include "DOD_PixelStrips.h"
+#include "DOD_Pixel.h"
 
-// DOD_LedMap::DOD_LedMap(int _x,int _y) {
-//   x = _x;
-//   y = _y;
-// }
+#include <FastLED.h>
 
-// DOD_LedStrips::
+#include <Arduino.h>
 
-// left
+#define NUM_LEDS_LEFT 287
+#define NUM_LEDS_RIGHT 276
+#define DATA_PIN_LEFT A0
+#define DATA_PIN_RIGHT A1
 
-// (1,   5,  13)
-// (2,   5,  15)
-// (3,   5,  18)
-// (4,   5,  20)
-// (5,   5,  23)
-// (6,   5,  27)
-// (7,   5,  29)
-// (8,   5,  32)
-// (9,   5,  34)
-// (10,  5,  36)
-// (11,  5,  39)
-// (12,  5,  42)
-// (13,  5,  44)
-// (14,  5,  47)
-// (15,  5,  49)
-// (16,  5,  52)
-// (17,  5,  55)
-// (18,  5,  57)
-// (19,  5,  60)
-// (20,  5,  62)
-// (21,  5,  65)
-// (22,  5,  68)
-// (23,  5,  70)
-// (24,  5,  72)
-// (25,  5,  75)
-// (26,  5,  78)
-// (27,  2, 77)
-// (28,  5, 69)
-// (29,  7, 68)
-// (30,  8, 66)
-// (31,  10, 64)
-// (32,  12, 63)
-// (33,  14, 61)
-// (34,  15, 41)
-// (35,  13, 43)
-// (36,  10, 46)
-// (37,  8, 48)
-// (38,  6, 50)
-// (39,  4, 52)
-// (40,  3, 82)
-// (41,  6, 82)
-// (42,  8, 82)
-// (43,  11, 82)
-// (44,  13, 82)
-// (45,  16, 82)
-// (46,  19, 82)
-// (47,  19, 86)
-// (48,  16, 86)
-// (49,  13, 86)
-// (50,  11, 86)
-// (51,  8, 86)
-// (52,  6, 86)
-// (53,  3, 86)
-// (54,  5, 90)
-// (55, 6, 92)
-// (56, 7, 94)
-// (57, 8, 96)
-// (58, 10, 99)
-// (59, 11, 101)
-// (60, 12, 103)
-// (61, 13, 106)
-// (62, 15, 108)
-// (63, 16, 110)
+const int NUM_LEDS_TOTAL = NUM_LEDS_LEFT + NUM_LEDS_RIGHT;
 
-// (64, 11, 116)
-// (65, 9, 118)
-// (66, 7, 120)
+// https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino
+CRGBPalette16 pacifica_palette_1 = 
+    { 0x000507, 0x000409, 0x00030B, 0x00030D, 0x000210, 0x000212, 0x000114, 0x000117, 
+      0x000019, 0x00001C, 0x000026, 0x000031, 0x00003B, 0x000046, 0x14554B, 0x28AA50 };
+CRGBPalette16 pacifica_palette_2 = 
+    { 0x000507, 0x000409, 0x00030B, 0x00030D, 0x000210, 0x000212, 0x000114, 0x000117, 
+      0x000019, 0x00001C, 0x000026, 0x000031, 0x00003B, 0x000046, 0x0C5F52, 0x19BE5F };
+CRGBPalette16 pacifica_palette_3 = 
+    { 0x000208, 0x00030E, 0x000514, 0x00061A, 0x000820, 0x000927, 0x000B2D, 0x000C33, 
+      0x000E39, 0x001040, 0x001450, 0x001860, 0x001C70, 0x002080, 0x1040BF, 0x2060FF };
 
-// (67, 20, 112)
-// (68, 22, 113)
-// (69, 24, 114)
-// (70, 27, 115)
-// (71, 30, 116)
-// (72, 32, 117)
-// (73, 34, 118)
-// (74, 37, 119)
-// (75, 39, 120)
-// (76, 42, 121)
-// (77, 45, 122)
 
-// (78, 45, 119)
-// (79, 42, 118)
-// (80, 39, 117)
-// (81, 37, 116)
-// (82, 34, 115)
-// (83, 32, 114)
-// (84, 30, 113)
-// (85, 27, 112)
-// (86, 24, 111)
-// (87, 22, 110)
-// (88, 20, 109)
 
-// (89, 20, 108)
-// (90, 18, 106)
-// (91, 16, 104)
-// (92, 15, 102)
-// (93, 14, 100)
-// (94, 13, 98)
-// (95, 12, 95)
-// (96, 10, 92)
-// (97, 8, 89)
+CRGB ledsLeft[NUM_LEDS_LEFT];
+CRGB ledsRight[NUM_LEDS_RIGHT];
+// CRGB leds[NUM_LEDS_LEFT + NUM_LEDS_RIGHT];
 
-// (98, 13, 89)
-// (99, 14, 91)
-// (100, 15, 94)
-// (101, 17, 96)
-// (102, 18, 98)
-// (103, 19, 100)
-// (104, 20, 102)
-// (105, 21, 105)
+void DOD_PixelStrips::setupStrips() {
+  // FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT);
+  // FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT);
+  FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT).setCorrection( TypicalLEDStrip );
+}
 
-// (106, 26, 106)
-// (107, 28, 107)
-// (108, 31, 108)
-// (109, 33, 109)
-// (110, 36, 110)
-// (111, 38, 111)
-// (112, 40, 112)
-// (113, 42, 113)
-// (114, 45, 114)
+void DOD_PixelStrips::loop() {
+  EVERY_N_MILLISECONDS( 20) {
+    DOD_PixelStrips::pacifica_loop();
+    FastLED.show();
+  }
+  // for(int dot = 0; dot < NUM_LEDS_LEFT; dot++) { 
+  //   if (dot < NUM_LEDS_RIGHT) {
+  //     ledsRight[dot] = CRGB::Green;
+  //   }
+  //   ledsLeft[dot] = CRGB::Blue;
 
-// (115, 45, 106)
-// (116, 45, 104)
-// (117, 45, 101)
-// (118, 45, 99)
-// (119, 45, 96)
-// (120, 45, 94)
-// (121, 45, 91)
-// (122, 45, 89)
-// (123, 45, 86)
-// (124, 45, 83)
-// (125, 45, 80)
+  //   FastLED.show();
 
-// (126, 41, 83)
-// (127, 41, 85)
-// (128, 41, 88)
-// (129, 41, 90)
-// (130, 41, 93)
-// (131, 41, 95)
-// (132, 41, 98)
-// (133, 41, 100)
+  //   if (dot < NUM_LEDS_LEFT) {
+  //     ledsRight[dot] = CRGB::Black;
+  //   }
+  //   ledsLeft[dot] = CRGB::Black;
 
-// (134, 40, 103)
-// (135, 38, 102)
-// (136, 36, 101)
-// (137, 34, 99)
-// (138, 32, 98)
-// (139, 30, 96)
+  //   delay(5);
+  // }
+}
 
-// (140, 41, 70)
-// (141, 41, 68)
-// (142, 41, 65)
-// (143, 41, 63)
-// (144, 41, 60)
-// (145, 42, 56)
-// (146, 42, 53)
-// (147, 42, 50)
-// (148, 42, 47)
-// (149, 43, 44)
-// (150, 43, 42)
-// (151, 44, 40)
+void DOD_PixelStrips::pacifica_loop()
+{
+  // Increment the four "color index start" counters, one for each wave layer.
+  // Each is incremented at a different speed, and the speeds vary over time.
+  static uint16_t sCIStart1, sCIStart2, sCIStart3, sCIStart4;
+  static uint32_t sLastms = 0;
+  uint32_t ms = GET_MILLIS();
+  uint32_t deltams = ms - sLastms;
+  sLastms = ms;
+  uint16_t speedfactor1 = beatsin16(3, 179, 269);
+  uint16_t speedfactor2 = beatsin16(4, 179, 269);
+  uint32_t deltams1 = (deltams * speedfactor1) / 256;
+  uint32_t deltams2 = (deltams * speedfactor2) / 256;
+  uint32_t deltams21 = (deltams1 + deltams2) / 2;
+  sCIStart1 += (deltams1 * beatsin88(1011,10,13));
+  sCIStart2 -= (deltams21 * beatsin88(777,8,11));
+  sCIStart3 -= (deltams1 * beatsin88(501,5,7));
+  sCIStart4 -= (deltams2 * beatsin88(257,4,6));
 
-// (152, 38, 51)
-// (153, 38, 53)
-// (154, 37, 55)
-// (155, 37, 58)
-// (156, 36, 60)
-// (157, 36, 62)
-// (158, 36, 65)
-// (159, 35, 68)
-// (160, 35, 71)
+  // Clear out the LED array to a dim background blue-green
+  fill_solid( ledsLeft, NUM_LEDS_LEFT, CRGB( 2, 6, 10));
+  fill_solid( ledsRight, NUM_LEDS_RIGHT, CRGB( 2, 6, 10));
 
-// (161, 33, 71)
-// (162, 33, 68)
-// (163, 34, 65)
-// (164, 34, 62)
-// (165, 34, 60)
-// (166, 35, 58)
-// (167, 35, 55)
-// (168, 36, 53)
-// (169, 36, 51)
+  // Render each of four layers, with different scales and speeds, that vary over time
+  pacifica_one_layer( pacifica_palette_1, sCIStart1, beatsin16( 3, 11 * 256, 14 * 256), beatsin8( 10, 70, 130), 0-beat16( 301) );
+  pacifica_one_layer( pacifica_palette_2, sCIStart2, beatsin16( 4,  6 * 256,  9 * 256), beatsin8( 17, 40,  80), beat16( 401) );
+  pacifica_one_layer( pacifica_palette_3, sCIStart3, 6 * 256, beatsin8( 9, 10,38), 0-beat16(503));
+  pacifica_one_layer( pacifica_palette_3, sCIStart4, 5 * 256, beatsin8( 8, 10,28), beat16(601));
 
-// (170, 34, 45)
-// (171, 34, 47)
-// (172, 33, 50)
-// (173, 33, 52)
-// (174, 33, 55)
-// (175, 32, 57)
-// (176, 32, 59)
-// (177, 32, 61)
-// (178, 31, 64)
-// (179, 31, 67)
-// (180, 30, 70)
-// (181, 30, 73)
+  // Add brighter 'whitecaps' where the waves lines up more
+  pacifica_add_whitecaps();
 
-// (182, 25, 79)
-// (183, 25, 77)
-// (184, 25, 74)
-// (185, 26, 71)
-// (186, 26, 69)
-// (187, 26, 66)
-// (188, 27, 64)
-// (189, 27, 61)
-// (190, 27, 59)
-// (191, 28, 56)
-// (192, 28, 54)
-// (193, 28, 51)
-// (194, 29, 49)
-// (195, 29, 46)
-// (196, 29, 44)
-// (197, 30, 41)
-// (198, 30, 39)
+  // Deepen the blues and greens a bit
+  pacifica_deepen_colors();
+}
 
-// (199, 24, 9)
-// (200, 24, 11)
-// (201, 24, 14)
-// (202, 24, 16)
-// (203, 24, 19)
-// (204, 24, 21)
-// (205, 24, 24)
-// (206, 24, 26)
-// (207, 24, 29)
-// (208, 24, 31)
-// (209, 24, 34)
-// (210, 24, 36)
-// (211, 24, 39)
-// (212, 24, 41)
-// (213, 24, 44)
-// (214, 24, 46)
-// (215, 24, 49)
-// (216, 24, 51)
-// (217, 24, 54)
-// (218, 24, 56)
-// (219, 24, 59)
-// (220, 24, 61)
-// (221, 24, 64)
-// (222, 24, 66)
-// (223, 24, 69)
-// (224, 24, 71)
-// (225, 24, 74)
-// (226, 24, 76)
+void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff)
+{
+  uint16_t ci = cistart;
+  uint16_t waveangle = ioff;
+  uint16_t wavescale_half = (wavescale / 2) + 20;
+  for( uint16_t i = 0; i < NUM_LEDS_LEFT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsLeft[i] += c;
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_RIGHT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsRight[i] += c;
+  }
+}
 
-// (227, 20, 76)
-// (228, 20, 74)
-// (229, 20, 71)
-// (230, 20, 69)
-// (231, 20, 66)
-// (232, 20, 64)
-// (233, 20, 61)
-// (234, 20, 59)
-// (235, 20, 56)
-// (236, 20, 54)
-// (237, 20, 51)
-// (238, 20, 49)
-// (239, 20, 46)
-// (240, 20, 44)
-// (241, 20, 41)
-// (242, 20, 39)
-// (243, 20, 36)
-// (244, 20, 34)
-// (245, 20, 31)
-// (246, 20, 29)
-// (247, 20, 26)
-// (248, 20, 24)
-// (249, 20, 21)
-// (250, 20, 19)
-// (251, 20, 16)
-// (252, 20, 14)
-// (253, 20, 11)
-// (254, 20, 9)
+// Add extra 'white' to areas where the four layers of light have lined up brightly
+void DOD_PixelStrips::pacifica_add_whitecaps()
+{
+  uint8_t basethreshold = beatsin8( 9, 55, 65);
+  uint8_t wave = beat8( 7 );
+  
+  for( uint16_t i = 0; i < NUM_LEDS_LEFT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsLeft[i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsLeft[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_RIGHT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsRight[i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsRight[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
+}
 
-// (255, 36, 5)
-// (256, 33, 5)
-// (257, 30, 5)
-// (258, 27, 5)
-// (259, 25, 5)
-// (260, 22, 5)
-// (261, 20, 5)
-// (262, 17, 5)
-// (263, 15, 5)
-// (264, 12, 5)
-// (265, 10, 5)
-// (266, 7, 5)
-// (267, 5, 5)
-
-// (268, 4, 2)
-// (269, 6, 2)
-// (270, 9, 2)
-// (271, 12, 2)
-// (272, 15, 2)
-// (273, 17, 2)
-// (274, 19, 2)
-// (275, 21, 2)
-// (276, 24, 2)
-// (277, 26, 2)
-// (278, 29, 2)
-// (279, 31, 2)
-// (280, 33, 2)
-// (281, 36, 2)
-// (282, 38, 2)
-// (283, 41, 2)
-// (284, 43, 2)
-
-// (285, 44, 12)
-// (286, 44, 14)
-// (287, 44, 17)
+// Deepen the blues and greens
+void DOD_PixelStrips::pacifica_deepen_colors()
+{
+  for( uint16_t i = 0; i < NUM_LEDS_LEFT; i++) {
+    ledsLeft[i].blue = scale8( ledsLeft[i].blue,  145); 
+    ledsLeft[i].green= scale8( ledsLeft[i].green, 200); 
+    ledsLeft[i] |= CRGB( 2, 5, 7);
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_RIGHT; i++) {
+    ledsRight[i].blue = scale8( ledsRight[i].blue,  145); 
+    ledsRight[i].green= scale8( ledsRight[i].green, 200); 
+    ledsRight[i] |= CRGB( 2, 5, 7);
+  }
+}
