@@ -30,10 +30,14 @@ CRGB ledsRight[NUM_LEDS_RIGHT];
 // CRGB leds[NUM_LEDS_LEFT + NUM_LEDS_RIGHT];
 
 void DOD_PixelStrips::setupStrips() {
-  // FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT);
-  // FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT);
   FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT).setCorrection( TypicalLEDStrip );
+
+  // fill_solid( ledsLeft, NUM_LEDS_LEFT, CRGB( 5, 0, 200));
+  // fill_solid( ledsRight, NUM_LEDS_RIGHT, CRGB( 5, 0, 200));
+
+  // FastLED.show();
+
 }
 
 void DOD_PixelStrips::loop() {
@@ -41,6 +45,8 @@ void DOD_PixelStrips::loop() {
     DOD_PixelStrips::pacifica_loop();
     FastLED.show();
   }
+
+
   // for(int dot = 0; dot < NUM_LEDS_LEFT; dot++) { 
   //   if (dot < NUM_LEDS_RIGHT) {
   //     ledsRight[dot] = CRGB::Green;
@@ -54,7 +60,6 @@ void DOD_PixelStrips::loop() {
   //   }
   //   ledsLeft[dot] = CRGB::Black;
 
-  //   delay(5);
   // }
 }
 

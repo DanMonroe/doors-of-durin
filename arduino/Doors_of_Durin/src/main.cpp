@@ -21,9 +21,9 @@ uint8_t lastInitiateActionButtonState = 0;
 
 int motorState = 0;
 
-const bool MOTORS_ENABLED = false;
+const bool MOTORS_ENABLED = true;
 const bool SOUND_ENABLED = false;
-const bool LEDS_ENABLED = true;
+const bool LEDS_ENABLED = false;
 
 const bool DEBUG = false;
 const int debounceTime = 200;

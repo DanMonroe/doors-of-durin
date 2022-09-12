@@ -26,8 +26,8 @@ volatile int state;
 int runningLEDState = LOW;
 int lastRunningLEDState = LOW;
 
-const int MAX_SPEED = 600;
-// const int MAX_SPEED = 6000;
+const int MAX_SPEED = 100;  // ~= 19 seconds per revolution
+// const int MAX_SPEED = 600;
 const int debounceTime = 200;
 
 elapsedMillis lastCloseLimitSwitchTime;
