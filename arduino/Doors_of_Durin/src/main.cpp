@@ -3,7 +3,7 @@
 #include "pins.h"
 #include <DOD_Motor.h>
 #include <DOD_Sound.h>
-#include <DOD_PixelStrips.h>
+// #include <DOD_PixelStrips.h>
 
 #include <AccelStepper.h>
 #include <Wire.h>
@@ -23,7 +23,7 @@ int motorState = 0;
 
 const bool MOTORS_ENABLED = true;
 const bool SOUND_ENABLED = false;
-const bool LEDS_ENABLED = false;
+// const bool LEDS_ENABLED = false;
 
 const bool DEBUG = false;
 const int debounceTime = 200;
@@ -31,7 +31,7 @@ const int debounceTime = 200;
 elapsedMillis printTime;
 elapsedMillis lastInitiateActionTime;
 
-DOD_PixelStrips *strips = new DOD_PixelStrips();
+// DOD_PixelStrips *strips = new DOD_PixelStrips();
 
 DOD_Sound *sound = new DOD_Sound(DEBUG);
 
@@ -145,9 +145,9 @@ void setup() {
     sound->setup();
   }
 
-  if (LEDS_ENABLED) {
-    strips->setupStrips();
-  }
+  // if (LEDS_ENABLED) {
+  //   strips->setupStrips();
+  // }
 
   if (MOTORS_ENABLED) {
     AFMS.begin();
@@ -172,9 +172,9 @@ void loop() {
     sound->run(motorState);
   }
 
-  if (LEDS_ENABLED) {
-    strips->loop();
-  }
+  // if (LEDS_ENABLED) {
+  //   strips->loop();
+  // }
 
   if (printTime >= 1000) {
     printTime = 0;
