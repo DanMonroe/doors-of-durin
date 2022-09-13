@@ -2,6 +2,13 @@
 #define _DOD_pins_h
 
 #include <Arduino.h>
+
+// define Slave I2C address
+#define SLAVE_ADDR 9
+
+// slave answer size ?
+#define ANSWERSIZE 5
+
 /**
  * Sound definitions
  * 
@@ -43,6 +50,13 @@ const int DOD_PIN_initiateActionButtonPin = 14;
  * Motors
  * 
  */
+// const uint8_t motor1Pin_directionToggle = 5;
+// const uint8_t motor1Pin_runningLED = 15;
+const uint8_t motor1Pin_closeLimitSwitch = 12; 
+// const uint8_t motor1Pin_moveButton = 9;       // TODO  This conflicts above
+const long motor1_targetOpenPosition = 500;   // TODO  eventually 7000
+
+
 const uint8_t motor2Pin_directionToggle = 5;
 const uint8_t motor2Pin_runningLED = 15;
 const uint8_t motor2Pin_closeLimitSwitch = 8; // TODO  This conflicts above

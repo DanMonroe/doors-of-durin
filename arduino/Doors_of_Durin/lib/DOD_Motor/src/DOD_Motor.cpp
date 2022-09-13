@@ -248,7 +248,6 @@ void DOD_Motor::toggleDirection() {
 
 // Called from the loop of main.cpp
 void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
-println("-----------------yo");
   if (actionButtonState == HIGH) {
     print("INITIATE ACTION BUTTON PRESSED ");
     println(actionButtonState);

@@ -1,8 +1,6 @@
 #include "DOD_PixelStrips.h"
 #include "DOD_Pixel.h"
 
-#include <FastLED.h>
-
 #include <Arduino.h>
 
 #define NUM_LEDS_LEFT 287
@@ -30,6 +28,8 @@ CRGB ledsRight[NUM_LEDS_RIGHT];
 // CRGB leds[NUM_LEDS_LEFT + NUM_LEDS_RIGHT];
 
 void DOD_PixelStrips::setupStrips() {
+  Serial.println("setupStrips");
+
   FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT).setCorrection( TypicalLEDStrip );
 
@@ -41,30 +41,13 @@ void DOD_PixelStrips::setupStrips() {
 }
 
 void DOD_PixelStrips::loop() {
-  EVERY_N_MILLISECONDS( 20) {
+  EVERY_N_MILLISECONDS(20) {
     DOD_PixelStrips::pacifica_loop();
     FastLED.show();
   }
-
-
-  // for(int dot = 0; dot < NUM_LEDS_LEFT; dot++) { 
-  //   if (dot < NUM_LEDS_RIGHT) {
-  //     ledsRight[dot] = CRGB::Green;
-  //   }
-  //   ledsLeft[dot] = CRGB::Blue;
-
-  //   FastLED.show();
-
-  //   if (dot < NUM_LEDS_LEFT) {
-  //     ledsRight[dot] = CRGB::Black;
-  //   }
-  //   ledsLeft[dot] = CRGB::Black;
-
-  // }
 }
 
-void DOD_PixelStrips::pacifica_loop()
-{
+void DOD_PixelStrips::pacifica_loop() {
   // Increment the four "color index start" counters, one for each wave layer.
   // Each is incremented at a different speed, and the speeds vary over time.
   static uint16_t sCIStart1, sCIStart2, sCIStart3, sCIStart4;
@@ -99,8 +82,7 @@ void DOD_PixelStrips::pacifica_loop()
   pacifica_deepen_colors();
 }
 
-void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff)
-{
+void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff) {
   uint16_t ci = cistart;
   uint16_t waveangle = ioff;
   uint16_t wavescale_half = (wavescale / 2) + 20;
@@ -127,8 +109,7 @@ void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, ui
 }
 
 // Add extra 'white' to areas where the four layers of light have lined up brightly
-void DOD_PixelStrips::pacifica_add_whitecaps()
-{
+void DOD_PixelStrips::pacifica_add_whitecaps() {
   uint8_t basethreshold = beatsin8( 9, 55, 65);
   uint8_t wave = beat8( 7 );
   
@@ -155,8 +136,7 @@ void DOD_PixelStrips::pacifica_add_whitecaps()
 }
 
 // Deepen the blues and greens
-void DOD_PixelStrips::pacifica_deepen_colors()
-{
+void DOD_PixelStrips::pacifica_deepen_colors() {
   for( uint16_t i = 0; i < NUM_LEDS_LEFT; i++) {
     ledsLeft[i].blue = scale8( ledsLeft[i].blue,  145); 
     ledsLeft[i].green= scale8( ledsLeft[i].green, 200); 
