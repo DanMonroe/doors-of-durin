@@ -11,20 +11,22 @@
 
 const bool MOTORS_ENABLED = true;
 const bool DEBUG = false;
-// volatile int state;
-int motorState = 0;
+
+int motorState1 = 0;
+int motorState2 = 0;
 int wireState = 0;
 int lastWireState = 0;
 
 elapsedMillis printTime;
 
-void receiveEvent() {
+void receiveEvent(int signalCode) {
   // Read while data received
   while (0 < Wire.available()) {
     wireState = Wire.read();
-    Serial.print("receiveEvent wireState ");
-    Serial.println(wireState);
-
+    if (DEBUG) {
+      Serial.print("receiveEvent wireState ");
+      Serial.println(wireState);
+    }
   }
 }
  
@@ -44,50 +46,52 @@ void receiveEvent() {
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
-// Adafruit_StepperMotor *stepper1 = AFMS.getStepper(200, 1);
-Adafruit_StepperMotor *stepper2 = AFMS.getStepper(200, 2);
+// Adafruit_StepperMotor *leftStepper = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *rightStepper = AFMS.getStepper(200, 1);
 
-void forwardstep1() {
-  stepper1->onestep(FORWARD, DOUBLE);
-}
-void backwardstep1() {
-  stepper1->onestep(BACKWARD, DOUBLE);
-}
+// void leftForwardStep() {
+//   leftStepper->onestep(FORWARD, DOUBLE);
+// }
+// void leftBackwardStep() {
+//   leftStepper->onestep(BACKWARD, DOUBLE);
+// }
 
-void forwardstep2() {
-  stepper2->onestep(FORWARD, DOUBLE);
-}
-
-void backwardstep2() {
-  stepper2->onestep(BACKWARD, DOUBLE);
+void rightForwardStep() {
+  rightStepper->onestep(FORWARD, DOUBLE);
 }
 
+void rightBackwardstep() {
+  rightStepper->onestep(BACKWARD, DOUBLE);
+}
 
-AccelStepper DOD_Astepper1(forwardstep1, backwardstep1);
-AccelStepper DOD_Astepper2(forwardstep2, backwardstep2);
+
+// AccelStepper DOD_leftStepper(leftForwardStep, leftBackwardStep);
+AccelStepper DOD_rightStepper(rightForwardStep, rightBackwardstep);
 
 // startingDirection should be opposite for each motor;
-DOD_Motor motor1 = DOD_Motor(
+// DOD_Motor leftMotor = DOD_Motor(
+//   "Motor 1",
+//   DEBUG, 
+//   DOD_leftStepper, 
+//   // leftMotorPin_closeOpenButton, 
+//   leftMotorPin_closeLimitSwitch, 
+//   // leftMotorPin_moveButton, 
+//   // leftMotorPin_directionToggle, 
+//   // leftMotorPin_runningLED,
+//   1,
+//   leftMotor_targetOpenPosition
+// );
+DOD_Motor rightMotor = DOD_Motor(
+  "Motor 2",
   DEBUG, 
-  DOD_Astepper1, 
-  // motor1Pin_closeOpenButton, 
-  motor1Pin_closeLimitSwitch, 
-  motor1Pin_moveButton, 
-  motor1Pin_directionToggle, 
-  motor1Pin_runningLED,
-  1,
-  motor1_targetOpenPosition
-);
-DOD_Motor motor2 = DOD_Motor(
-  DEBUG, 
-  DOD_Astepper2, 
-  // motor2Pin_closeOpenButton, 
-  motor2Pin_closeLimitSwitch, 
-  motor2Pin_moveButton, 
-  motor2Pin_directionToggle, 
-  motor2Pin_runningLED,
+  DOD_rightStepper, 
+  // rightMotorPin_closeOpenButton, 
+  rightMotorPin_closeLimitSwitch, 
+  // rightMotorPin_moveButton, 
+  // rightMotorPin_directionToggle, 
+  // rightMotorPin_runningLED,
   -1,
-  motor2_targetOpenPosition
+  rightMotor_targetOpenPosition
 );
 
 
@@ -103,40 +107,54 @@ void setup() {
   // Function to run when data received from master
   Wire.onReceive(receiveEvent);
 
-  Serial.begin(9600);
-  // // Serial.begin(115200);
-  Serial.println("Start LED");
-  Serial.println();
+  if (DEBUG) {
+    Serial.begin(9600);
+    Serial.println("Start Motor");
+    Serial.println();
+  }
 
   if (MOTORS_ENABLED) {
     AFMS.begin();
     // // setup motors
-    motor1.setupMotor();
-    motor2.setupMotor();
+    // leftMotor.setupMotor();
+    rightMotor.setupMotor();
   }
 }
 
 void loop() {
   if (MOTORS_ENABLED) {
-    if (wireState == 200) {
-      motor1.initiateAction(HIGH);
-      motor2.initiateAction(HIGH);
+
+    if (wireState == SIGNAL_STOP_EVERYTHING) {
+      if (DEBUG) {
+        Serial.println("Sending SIGNAL_STOP_EVERYTHING");
+      }
+      // leftMotor.stopEverything();
+      rightMotor.stopEverything();
+      // leftStepper->release();
+      rightStepper->release();
+      wireState = 0;
+    }
+    if (wireState == SIGNAL_INITIATE_BUTTON_HIGH) {
+      // leftMotor.initiateAction(HIGH);
+      if (DEBUG) {
+        Serial.println("Sending SIGNAL_INITIATE_BUTTON_HIGH");
+      }
+      rightMotor.initiateAction(HIGH);
       wireState = 0;
     }
 
-    motor1.run();
-    motor2.run();
+    // leftMotor.run();
+    rightMotor.run();
 
     // TODO send motorState back to main to control sounds/leds
-    // motorState = motor2.getState();
+    // motorState1 = leftMotor.getState();
+    motorState2 = rightMotor.getState();
   }
 
-  if (printTime >= 1000) {
+  if (DEBUG && MOTORS_ENABLED && printTime >= 1000) {
     printTime = 0;
-    if (MOTORS_ENABLED) {
-      motor1.report("Motor 1");
-      motor2.report("Motor 2");
-    }
+    // leftMotor.report();
+    rightMotor.report();
   } 
 
 }

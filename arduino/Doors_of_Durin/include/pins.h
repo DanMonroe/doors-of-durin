@@ -6,8 +6,11 @@
 // define Slave I2C address
 #define SLAVE_ADDR 9
 
-// slave answer size ?
-#define ANSWERSIZE 5
+// I2C communication signals between arduinos
+#define SIGNAL_STOP_EVERYTHING 100
+#define SIGNAL_INITIATE_BUTTON_HIGH 200
+#define SIGNAL_INITIATE_BUTTON_LOW 201
+
 
 /**
  * Sound definitions
@@ -43,25 +46,26 @@
  * Main
  * 
  */
+// Arduino Mega has 6 external interrupt pin Digital pin 2, Digital pin 3, Digital pin 21, Digital pin 20, Digital pin 19 and Digital pin 18.
 const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
-const int DOD_PIN_initiateActionButtonPin = 14; 
+const int DOD_PIN_initiateActionButtonPin = 11; 
 
 /**
  * Motors
  * 
  */
-// const uint8_t motor1Pin_directionToggle = 5;
-// const uint8_t motor1Pin_runningLED = 15;
-const uint8_t motor1Pin_closeLimitSwitch = 12; 
-// const uint8_t motor1Pin_moveButton = 9;       // TODO  This conflicts above
-const long motor1_targetOpenPosition = 500;   // TODO  eventually 7000
+// const uint8_t leftMotorPin_directionToggle = 5;
+// const uint8_t leftMotorPin_runningLED = 15;
+const uint8_t leftMotorPin_closeLimitSwitch = 12; 
+// const uint8_t leftMotorPin_moveButton = 9;       // TODO  This conflicts above
+const long leftMotor_targetOpenPosition = 500;   // TODO  eventually ?
 
 
-const uint8_t motor2Pin_directionToggle = 5;
-const uint8_t motor2Pin_runningLED = 15;
-const uint8_t motor2Pin_closeLimitSwitch = 8; // TODO  This conflicts above
-const uint8_t motor2Pin_moveButton = 9;       // TODO  This conflicts above
-const long motor2_targetOpenPosition = 500;   // TODO  eventually 7000
+// const uint8_t rightMotorPin_directionToggle = 5;
+// const uint8_t rightMotorPin_runningLED = 15;
+const uint8_t rightMotorPin_closeLimitSwitch = 13; // TODO  This conflicts above
+// const uint8_t rightMotorPin_moveButton = 9;       // TODO  This conflicts above
+const long rightMotor_targetOpenPosition = 500;   // TODO  eventually ?
 
 
 #endif

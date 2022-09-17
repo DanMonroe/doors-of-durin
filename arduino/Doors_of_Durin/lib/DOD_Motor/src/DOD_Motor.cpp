@@ -23,34 +23,38 @@
 
 volatile int state;
 
-int runningLEDState = LOW;
-int lastRunningLEDState = LOW;
+// int runningLEDState = LOW;
+// int lastRunningLEDState = LOW;
 
 const int MAX_SPEED = 100;  // ~= 19 seconds per revolution
 // const int MAX_SPEED = 600;
 const int debounceTime = 200;
 
 elapsedMillis lastCloseLimitSwitchTime;
-elapsedMillis lastToggleTime;
-elapsedMillis lastMoveTime;
+// elapsedMillis lastToggleTime;
+// elapsedMillis lastMoveTime;
 
 
 DOD_Motor::DOD_Motor(
+    String _name,
     bool _debug, 
     AccelStepper _stepper, 
     uint8_t _closeLimitSwitchPin, 
-    uint8_t _moveButtonPin, 
-    uint8_t _directionTogglePin, 
-    uint8_t _motorRunningLEDPin, 
+    // uint8_t _moveButtonPin, 
+    // uint8_t _directionTogglePin, 
+    // uint8_t _motorRunningLEDPin, 
     int _closingDirection,
     long _targetOpenPosition
   ) {
+    name = _name,
     DEBUG = _debug;
     stepper = _stepper;
     closeLimitSwitchPin = _closeLimitSwitchPin;
-    moveButtonPin = _moveButtonPin;
-    directionTogglePin = _directionTogglePin;
-    motorRunningLEDPin = _motorRunningLEDPin;
+    print("closeLimitSwitchPin: ");
+    println(closeLimitSwitchPin);
+    // moveButtonPin = _moveButtonPin;
+    // directionTogglePin = _directionTogglePin;
+    // motorRunningLEDPin = _motorRunningLEDPin;
     
     closingDirection = _closingDirection;
     currentDirection = _closingDirection;
@@ -78,13 +82,17 @@ void DOD_Motor::setupMotor() {
 
   state = MOTOR_STATE_INIT;
 
-  pinMode(motorRunningLEDPin, OUTPUT);
-  digitalWrite(motorRunningLEDPin, runningLEDState);  // Start off
+  // pinMode(motorRunningLEDPin, OUTPUT);
+  // digitalWrite(motorRunningLEDPin, runningLEDState);  // Start off
 
-  print("closedLimitSwitchPin ");
+  print("closedLimitSwitchPin: ");
   println(closeLimitSwitchPin);
+  // pinMode(closeLimitSwitchPin, INPUT);
   pinMode(closeLimitSwitchPin, INPUT_PULLUP);
   closeLimitSwitchState = digitalRead(closeLimitSwitchPin);
+print("closeLimitSwitchState: ");
+println(closeLimitSwitchState);
+
   lastCloseLimitSwitchState = closeLimitSwitchState;
   if (closeLimitSwitchState == LOW) {
     state = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
@@ -95,8 +103,8 @@ void DOD_Motor::setupMotor() {
     }
   }
   
-  pinMode(moveButtonPin, INPUT);
-  pinMode(directionTogglePin, INPUT_PULLUP);
+  // pinMode(moveButtonPin, INPUT);
+  // pinMode(directionTogglePin, INPUT_PULLUP);
 
   stepper.setMaxSpeed(MAX_SPEED);
   stepper.setAcceleration(2);
@@ -111,8 +119,8 @@ void DOD_Motor::setState() {
     closeLimitSwitchState = digitalRead(closeLimitSwitchPin);
     if (closeLimitSwitchState != lastCloseLimitSwitchState) {
       if (closeLimitSwitchState == LOW) {
-        println("Limit Switch Closed");
-
+        print("Limit Switch Closed ");
+        println(closeLimitSwitchPin);
         // If starting while the close limit switch is closed, set ready to open.
         if (!initialized || state == MOTOR_STATE_CLOSING) {
           println("Initialized");
@@ -122,6 +130,9 @@ void DOD_Motor::setState() {
         } else {
           state = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
         }
+      } else {
+        print("Limit Switch Open ");
+        println(closeLimitSwitchPin);
       }
       lastCloseLimitSwitchState = closeLimitSwitchState;
       lastCloseLimitSwitchTime = 0;
@@ -129,45 +140,45 @@ void DOD_Motor::setState() {
   }
 
   // direction toggle only if the door is not closed.
-  if (state != MOTOR_STATE_CLOSED) {
-    if ( lastToggleTime >= debounceTime) {
-      directionToggleState = digitalRead(directionTogglePin);
-      if (directionToggleState != lastDirectionToggleState) {
-        if (directionToggleState == HIGH) {
-          println("Toggle On");
-        } else {
-          println("Toggle Off");
-        }
-        toggleDirection();
-        print("current direction ");
-        println(currentDirection);
-        currentSpeed = (currentDirection * MAX_SPEED);
-        setSpeed(currentSpeed);
-        lastDirectionToggleState = directionToggleState;
-        lastToggleTime = 0;
-      }
-    }
-  }
+  // if (state != MOTOR_STATE_CLOSED) {
+  //   if ( lastToggleTime >= debounceTime) {
+  //     directionToggleState = digitalRead(directionTogglePin);
+  //     if (directionToggleState != lastDirectionToggleState) {
+  //       if (directionToggleState == HIGH) {
+  //         println("Toggle On");
+  //       } else {
+  //         println("Toggle Off");
+  //       }
+  //       toggleDirection();
+  //       print("current direction ");
+  //       println(currentDirection);
+  //       currentSpeed = (currentDirection * MAX_SPEED);
+  //       setSpeed(currentSpeed);
+  //       lastDirectionToggleState = directionToggleState;
+  //       lastToggleTime = 0;
+  //     }
+  //   }
+  // }
 
-  if ( lastMoveTime >= debounceTime) {
-    moveButtonState = digitalRead(moveButtonPin);
-    if (moveButtonState != lastMoveButtonState) {
-      // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
-      // Move
-      if (moveButtonState == HIGH) {
-        println("Motor On");
-        currentSpeed = (currentDirection * MAX_SPEED);
-        setSpeed(currentSpeed);
-        state = MOTOR_STATE_RUNSPEED;
-      } else {
-        state = MOTOR_STATE_STOP;
-        println("Motor Off");
-      }
-      lastMoveButtonState = moveButtonState;
-      lastMoveTime = 0;
-      println("");
-    }
-  }
+  // if ( lastMoveTime >= debounceTime) {
+  //   moveButtonState = digitalRead(moveButtonPin);
+  //   if (moveButtonState != lastMoveButtonState) {
+  //     // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
+  //     // Move
+  //     if (moveButtonState == HIGH) {
+  //       println("Motor On");
+  //       currentSpeed = (currentDirection * MAX_SPEED);
+  //       setSpeed(currentSpeed);
+  //       state = MOTOR_STATE_RUNSPEED;
+  //     } else {
+  //       state = MOTOR_STATE_STOP;
+  //       println("Motor Off");
+  //     }
+  //     lastMoveButtonState = moveButtonState;
+  //     lastMoveTime = 0;
+  //     println("");
+  //   }
+  // }
 
   if (state == MOTOR_STATE_OPENING && stepper.distanceToGo() == 0) {
     state = MOTOR_STATE_OPEN;
@@ -188,12 +199,12 @@ void DOD_Motor::run() {
       break;
     case MOTOR_STATE_RUNSPEED:
     case MOTOR_STATE_CLOSING:
-      runningLEDState = HIGH;
+      // runningLEDState = HIGH;
       stepper.runSpeed();
       break;
     case MOTOR_STATE_OPENING:
       if (initialized) {
-        runningLEDState = HIGH;
+        // runningLEDState = HIGH;
         stepper.runSpeedToPosition();
       }
       break;
@@ -204,7 +215,7 @@ void DOD_Motor::run() {
       currentDirection = closingDirection;
     case MOTOR_STATE_STOP:
     case MOTOR_STATE_STOP_NOW:
-      runningLEDState = LOW;
+      // runningLEDState = LOW;
         // digitalWrite(sensorPin,LOW);    // removes interrupt signal
         // stepper.setAcceleration(200.0);  // this makes motor stop much quicker!
 // stepper.runToPosition();
@@ -219,9 +230,6 @@ void DOD_Motor::run() {
       break;
   }
 
-  toggleRunningLEDIfNeeded();
-
-
   // if (lastMotorRunTime >= 4000) {
   //   println("Stopping motor");
   //   lastMotorRunTime = 0;
@@ -233,20 +241,7 @@ void DOD_Motor::setSpeed(int speed) {
   stepper.setSpeed(speed);
 }
 
-// Turns on/off running LED if running state changed
-void DOD_Motor::toggleRunningLEDIfNeeded() {
-  if(runningLEDState != lastRunningLEDState) {
-    digitalWrite(motorRunningLEDPin, runningLEDState);
-    lastRunningLEDState = runningLEDState;
-  }
-}
-
-// toggleDirection
-void DOD_Motor::toggleDirection() {
-  currentDirection = -1 * currentDirection;
-}
-
-// Called from the loop of main.cpp
+// Called from the loop of motor_main.cpp
 void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
   if (actionButtonState == HIGH) {
     print("INITIATE ACTION BUTTON PRESSED ");
@@ -276,7 +271,7 @@ void DOD_Motor::initiateAction(int actionButtonState) {   // HIGH or LOW
 }
 
 // Called from main app when stop button pressed
-void DOD_Motor::stopEverything(String name) {
+void DOD_Motor::stopEverything() {
   print(name);
   println(" stopEverything called");
   state = MOTOR_STATE_STOP;
@@ -303,7 +298,7 @@ void DOD_Motor::println(long val) {
   }
 }
 
-void DOD_Motor::report(String name) {
+void DOD_Motor::report() {
     float mSpeed = stepper.speed();
     println(name);
     print(" state: ");
