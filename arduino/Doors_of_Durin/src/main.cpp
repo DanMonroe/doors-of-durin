@@ -23,10 +23,10 @@ uint8_t lastInitiateActionButtonState = 0;
 
 const bool MOTORS_ENABLED = true;
 const bool SOUND_ENABLED = false;
-const bool LEDS_ENABLED = true;
+const bool LEDS_ENABLED = false;
 
-const bool DEBUG = false;
-const int debounceTime = 200;
+const bool DEBUG = true;
+const int debounceTime = 150;
 
 // elapsedMillis printTime;
 elapsedMillis lastInitiateActionTime;

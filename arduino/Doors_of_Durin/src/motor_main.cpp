@@ -10,9 +10,11 @@
 #include <elapsedMillis.h>
 
 const bool MOTORS_ENABLED = true;
-const bool LEFT_ENABLED = false;
+const bool LEFT_ENABLED = true;
 const bool RIGHT_ENABLED = true;
-const bool DEBUG = false;
+const bool DEBUG = true;
+
+unsigned int REPORT_TIME = 2500;
 
 int leftMotorState = 0;
 int rightMotorState = 0;
@@ -103,11 +105,11 @@ void setup() {
   // Function to run when data received from master
   Wire.onReceive(receiveEvent);
 
-  if (DEBUG) {
+  // if (DEBUG) {
     Serial.begin(9600);
     Serial.println("Start Motor");
     Serial.println();
-  }
+  // }
 
   if (MOTORS_ENABLED) {
     AFMS.begin();
@@ -167,7 +169,7 @@ void loop() {
     }
   }
 
-  if (DEBUG && MOTORS_ENABLED && printTime >= 1000) {
+  if (DEBUG && MOTORS_ENABLED && printTime >= REPORT_TIME) {
     printTime = 0;
     if (LEFT_ENABLED) {
       leftMotor.report();
