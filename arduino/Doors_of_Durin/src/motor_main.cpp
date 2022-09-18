@@ -10,10 +10,12 @@
 #include <elapsedMillis.h>
 
 const bool MOTORS_ENABLED = true;
+const bool LEFT_ENABLED = false;
+const bool RIGHT_ENABLED = true;
 const bool DEBUG = false;
 
-int motorState1 = 0;
-int motorState2 = 0;
+int leftMotorState = 0;
+int rightMotorState = 0;
 int wireState = 0;
 int lastWireState = 0;
 
@@ -46,15 +48,17 @@ void receiveEvent(int signalCode) {
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
-// Adafruit_StepperMotor *leftStepper = AFMS.getStepper(200, 2);
-Adafruit_StepperMotor *rightStepper = AFMS.getStepper(200, 1);
+// Adafruit_StepperMotor *leftStepper = AFMS.getStepper(200, 1);
+// Adafruit_StepperMotor *rightStepper = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *leftStepper = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *rightStepper = AFMS.getStepper(200, 1);  // working
 
-// void leftForwardStep() {
-//   leftStepper->onestep(FORWARD, DOUBLE);
-// }
-// void leftBackwardStep() {
-//   leftStepper->onestep(BACKWARD, DOUBLE);
-// }
+void leftForwardStep() {
+  leftStepper->onestep(FORWARD, DOUBLE);
+}
+void leftBackwardStep() {
+  leftStepper->onestep(BACKWARD, DOUBLE);
+}
 
 void rightForwardStep() {
   rightStepper->onestep(FORWARD, DOUBLE);
@@ -65,31 +69,23 @@ void rightBackwardstep() {
 }
 
 
-// AccelStepper DOD_leftStepper(leftForwardStep, leftBackwardStep);
+AccelStepper DOD_leftStepper(leftForwardStep, leftBackwardStep);
 AccelStepper DOD_rightStepper(rightForwardStep, rightBackwardstep);
 
 // startingDirection should be opposite for each motor;
-// DOD_Motor leftMotor = DOD_Motor(
-//   "Motor 1",
-//   DEBUG, 
-//   DOD_leftStepper, 
-//   // leftMotorPin_closeOpenButton, 
-//   leftMotorPin_closeLimitSwitch, 
-//   // leftMotorPin_moveButton, 
-//   // leftMotorPin_directionToggle, 
-//   // leftMotorPin_runningLED,
-//   1,
-//   leftMotor_targetOpenPosition
-// );
+DOD_Motor leftMotor = DOD_Motor(
+  "Left Motor",
+  DEBUG, 
+  DOD_leftStepper, 
+  leftMotorPin_closeLimitSwitch, 
+  1,
+  leftMotor_targetOpenPosition
+);
 DOD_Motor rightMotor = DOD_Motor(
-  "Motor 2",
+  "Right Motor",
   DEBUG, 
   DOD_rightStepper, 
-  // rightMotorPin_closeOpenButton, 
   rightMotorPin_closeLimitSwitch, 
-  // rightMotorPin_moveButton, 
-  // rightMotorPin_directionToggle, 
-  // rightMotorPin_runningLED,
   -1,
   rightMotor_targetOpenPosition
 );
@@ -116,8 +112,12 @@ void setup() {
   if (MOTORS_ENABLED) {
     AFMS.begin();
     // // setup motors
-    // leftMotor.setupMotor();
-    rightMotor.setupMotor();
+    if (LEFT_ENABLED) {
+      leftMotor.setupMotor();
+    }
+    if (RIGHT_ENABLED) {
+      rightMotor.setupMotor();
+    }
   }
 }
 
@@ -128,33 +128,53 @@ void loop() {
       if (DEBUG) {
         Serial.println("Sending SIGNAL_STOP_EVERYTHING");
       }
-      // leftMotor.stopEverything();
-      rightMotor.stopEverything();
-      // leftStepper->release();
-      rightStepper->release();
+      if (LEFT_ENABLED) {
+        leftMotor.stopEverything();
+        leftStepper->release();
+      }
+      if (RIGHT_ENABLED) {
+        rightMotor.stopEverything();
+        rightStepper->release();
+      }
       wireState = 0;
     }
     if (wireState == SIGNAL_INITIATE_BUTTON_HIGH) {
-      // leftMotor.initiateAction(HIGH);
       if (DEBUG) {
         Serial.println("Sending SIGNAL_INITIATE_BUTTON_HIGH");
       }
-      rightMotor.initiateAction(HIGH);
+      if (LEFT_ENABLED) {
+        leftMotor.initiateAction(HIGH);
+      }
+      if (RIGHT_ENABLED) {
+        rightMotor.initiateAction(HIGH);
+      }
       wireState = 0;
     }
 
-    // leftMotor.run();
-    rightMotor.run();
+    if (LEFT_ENABLED) {
+      leftMotor.run();
+    }
+    if (RIGHT_ENABLED) {
+      rightMotor.run();
+    }
 
     // TODO send motorState back to main to control sounds/leds
-    // motorState1 = leftMotor.getState();
-    motorState2 = rightMotor.getState();
+    if (LEFT_ENABLED) {
+      leftMotorState = leftMotor.getState();
+    }
+    if (RIGHT_ENABLED) {
+      rightMotorState = rightMotor.getState();
+    }
   }
 
   if (DEBUG && MOTORS_ENABLED && printTime >= 1000) {
     printTime = 0;
-    // leftMotor.report();
-    rightMotor.report();
+    if (LEFT_ENABLED) {
+      leftMotor.report();
+    }
+    if (RIGHT_ENABLED) {
+      rightMotor.report();
+    }
   } 
 
 }

@@ -48,24 +48,22 @@
  */
 // Arduino Mega has 6 external interrupt pin Digital pin 2, Digital pin 3, Digital pin 21, Digital pin 20, Digital pin 19 and Digital pin 18.
 const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
-const int DOD_PIN_initiateActionButtonPin = 11; 
+const int DOD_PIN_initiateActionButtonPin = 22;
+// const int DOD_PIN_initiateActionButtonPin = 11; // original
 
 /**
  * Motors
  * 
  */
-// const uint8_t leftMotorPin_directionToggle = 5;
-// const uint8_t leftMotorPin_runningLED = 15;
-const uint8_t leftMotorPin_closeLimitSwitch = 12; 
-// const uint8_t leftMotorPin_moveButton = 9;       // TODO  This conflicts above
-const long leftMotor_targetOpenPosition = 500;   // TODO  eventually ?
+const uint8_t leftMotorPin_closeLimitSwitch = 17; // A3 
+// const uint8_t leftMotorPin_closeLimitSwitch = 12; // original 
+const long leftMotor_targetOpenPosition = 300;   // TODO  eventually 1500 ?
 
 
-// const uint8_t rightMotorPin_directionToggle = 5;
-// const uint8_t rightMotorPin_runningLED = 15;
-const uint8_t rightMotorPin_closeLimitSwitch = 13; // TODO  This conflicts above
-// const uint8_t rightMotorPin_moveButton = 9;       // TODO  This conflicts above
-const long rightMotor_targetOpenPosition = 500;   // TODO  eventually ?
+const uint8_t rightMotorPin_closeLimitSwitch = 16; // A2
+// const uint8_t rightMotorPin_closeLimitSwitch = 12; // working
+// const uint8_t rightMotorPin_closeLimitSwitch = 13; // original working
+const long rightMotor_targetOpenPosition = 300;   // TODO  eventually 1500 ?
 
 
 #endif
