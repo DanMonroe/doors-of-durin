@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <AccelStepper.h>
-#include <Wire.h>
+// #include <Wire.h>
 #include <Adafruit_MotorShield.h>
 #include <elapsedMillis.h>
 
@@ -107,7 +107,7 @@ println(closeLimitSwitchState);
   // pinMode(directionTogglePin, INPUT_PULLUP);
 
   stepper.setMaxSpeed(MAX_SPEED);
-  stepper.setAcceleration(2);
+  stepper.setAcceleration(100);
   stepper.setSpeed(currentDirection * MAX_SPEED);
 
   println("");
@@ -200,12 +200,14 @@ void DOD_Motor::run() {
     case MOTOR_STATE_RUNSPEED:
     case MOTOR_STATE_CLOSING:
       // runningLEDState = HIGH;
-      stepper.runSpeed();
+      // stepper.runSpeed();
+      stepper.run();
       break;
     case MOTOR_STATE_OPENING:
       if (initialized) {
         // runningLEDState = HIGH;
-        stepper.runSpeedToPosition();
+        stepper.runToPosition();
+        // stepper.runSpeedToPosition();
       }
       break;
     case MOTOR_STATE_CLOSED:

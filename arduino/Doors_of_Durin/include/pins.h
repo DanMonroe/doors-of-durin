@@ -48,13 +48,16 @@
  */
 // Arduino Mega has 6 external interrupt pin Digital pin 2, Digital pin 3, Digital pin 21, Digital pin 20, Digital pin 19 and Digital pin 18.
 const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
-const int DOD_PIN_initiateActionButtonPin = 22;
-// const int DOD_PIN_initiateActionButtonPin = 11; // original
+const int DOD_PIN_initiateActionButtonPin = 10;
+// const int DOD_PIN_initiateActionButtonPin = 22;
 
 /**
  * Motors
  * 
  */
+uint8_t closeLimitSwitchPin[2] = {17, 16}; 
+// const long targetOpenPosition[2] = {300, 300};
+
 const uint8_t leftMotorPin_closeLimitSwitch = 17; // A3 
 // const uint8_t leftMotorPin_closeLimitSwitch = 12; // original 
 const long leftMotor_targetOpenPosition = 300;   // TODO  eventually 1500 ?
