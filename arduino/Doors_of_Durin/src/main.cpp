@@ -1,8 +1,7 @@
 #include <Arduino.h>
 
 #include "pins.h"
-// #include <DOD_Motor.h>
-#include <DOD_Sound.h>
+// #include <DOD_Sound.h>
 #include <DOD_PixelStrips.h>
 
 // #include <AccelStepper.h>
@@ -16,8 +15,13 @@
 
 
 volatile int stopButtonState = 0;           // current state of the stop button (on interrupt)
-uint8_t initiateActionButtonState = 0;      // current state of the action button
-uint8_t lastInitiateActionButtonState = 0;
+// uint8_t initiateActionButtonState = 0;      // current state of the action button
+// uint8_t lastInitiateActionButtonState = 0;
+
+const int initiateActionButtonPin = 10;
+int initiateActionButtonState = 0;
+int lastInitiateActionButtonState = -1;
+elapsedMillis lastInitiateActionTime;
 
 // int motorState = 0;
 
@@ -29,11 +33,11 @@ const bool DEBUG = true;
 const int debounceTime = 150;
 
 // elapsedMillis printTime;
-elapsedMillis lastInitiateActionTime;
+// elapsedMillis lastInitiateActionTime;
 
 DOD_PixelStrips *strips = new DOD_PixelStrips();
 
-DOD_Sound *sound = new DOD_Sound(DEBUG);
+// DOD_Sound *sound = new DOD_Sound(DEBUG);
 
 // Interrupt when the STOP button is pressed
 // Set state on all motors to STOP
@@ -65,7 +69,7 @@ void checkStopButton() {
 // called from the main loop()
 void checkInitiateActionButton() {
     if ( lastInitiateActionTime >= debounceTime) {
-    initiateActionButtonState = digitalRead(DOD_PIN_initiateActionButtonPin);
+    initiateActionButtonState = digitalRead(initiateActionButtonPin);
     if (initiateActionButtonState != lastInitiateActionButtonState) {
       if (MOTORS_ENABLED) {
         Wire.beginTransmission(SLAVE_ADDR);
@@ -74,20 +78,8 @@ void checkInitiateActionButton() {
             Serial.println("checkInitiateActionButton writing 200");
           }
           Wire.write(SIGNAL_INITIATE_BUTTON_HIGH);
-        } else {
-          if (DEBUG) {
-            Serial.println("checkInitiateActionButton writing 201");
-          }
-          Wire.write(SIGNAL_INITIATE_BUTTON_LOW);
         }
         Wire.endTransmission();
-
-        // leftMotor.initiateAction(initiateActionButtonState);
-        // rightMotor.initiateAction(initiateActionButtonState);
-      } else {
-        if (DEBUG) {
-          Serial.println("motors disabled");
-        }
       }
       lastInitiateActionButtonState = initiateActionButtonState;
       lastInitiateActionTime = 0;
@@ -120,22 +112,15 @@ void setup() {
   pinMode(DOD_PIN_stopButton, INPUT);
   attachInterrupt(digitalPinToInterrupt(DOD_PIN_stopButton), checkStopButton, RISING);
   
-  pinMode(DOD_PIN_initiateActionButtonPin, INPUT_PULLUP);
+  pinMode(initiateActionButtonPin, INPUT_PULLUP);
 
-  if (SOUND_ENABLED) {
-    sound->setup();
-  }
+  // if (SOUND_ENABLED) {
+  //   sound->setup();
+  // }
 
   if (LEDS_ENABLED) {
     strips->setupStrips();
   }
-
-  // if (MOTORS_ENABLED) {
-  //   AFMS.begin();
-  //   // // setup motors
-  //   // leftMotor.setupMotor();
-  //   rightMotor.setupMotor();
-  // }
 }
 
 void loop() {
@@ -146,17 +131,6 @@ void loop() {
     strips->loop();
   }
 
-  // if (MOTORS_ENABLED) {
-  //   Wire.beginTransmission(SLAVE_ADDR);
-  //   Wire.write(1);
-  //   Wire.endTransmission();
-
-  // //   // leftMotor.run();
-  // //   rightMotor.run();
-
-  // //   motorState = rightMotor.getState();
-  // }
-  
   // if (SOUND_ENABLED) {
   //   sound->run(motorState);
   // }
@@ -164,12 +138,4 @@ void loop() {
   // if (LEDS_ENABLED) {
   //   strips->loop();
   // }
-
-  // if (printTime >= 1000) {
-  //   printTime = 0;
-  //   if (MOTORS_ENABLED) {
-  //   //   // leftMotor.report("Motor 1");
-  //     rightMotor.report("Motor 2");
-  //   }
-  // } 
 }

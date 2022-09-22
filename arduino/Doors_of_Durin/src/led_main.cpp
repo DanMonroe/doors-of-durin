@@ -4,9 +4,6 @@
 #include <DOD_PixelStrips.h>
 #include <Wire.h>
 
-// Define string with response to Master
-String answer = "Hello";
-
 const bool LEDS_ENABLED = true;
 volatile int state;
 

@@ -2,9 +2,7 @@
 
 // #include "pins.h"
 #include "motorStates.h"
-// #include <DOD_PixelStrips.h>
 // #include <Wire.h>
-// #include <DOD_Motor.h>
 #include <AccelStepper.h>
 #include <Adafruit_MotorShield.h>
 #include <elapsedMillis.h>
@@ -17,12 +15,13 @@ const bool DEBUG = true;
 unsigned int REPORT_TIME = 2500;
 
 int wireState = 0;
-int lastWireState = 0;
+int lastWireState = -1;
 
 elapsedMillis printTime;
 
 // define Slave I2C address
 #define SLAVE_ADDR 9
+#define SIGNAL_INITIATE_BUTTON_HIGH 200
 
 #define LEFT 0
 #define RIGHT 1
@@ -40,10 +39,10 @@ elapsedMillis rampUpTime[2];
 int closingDirection[2] = {-1, 1};
 int openingDirection[2] = {1, -1};
 
-const int initiateActionButtonPin = 10;
-int initiateActionButtonState = 0;
-int lastInitiateActionButtonState = -1;
-elapsedMillis lastInitiateActionTime;
+// const int initiateActionButtonPin = 10;
+// int initiateActionButtonState = 0;
+// int lastInitiateActionButtonState = -1;
+// elapsedMillis lastInitiateActionTime;
 
 
 void receiveEvent(int signalCode) {
@@ -121,64 +120,6 @@ void println(long val, int motorIndex) {
     Serial.println(val);
   }
 }
-// void report(int motorIndex) {
-//     float mSpeed = 0.0;
-//     long curPosition = 0;
-//     if (motorIndex == LEFT) {
-//       mSpeed = leftStepper.speed();
-//       curPosition = leftStepper.currentPosition();
-//     } else {
-//       mSpeed = rightStepper.speed();
-//       curPosition = rightStepper.currentPosition();
-//     }
-//     printName(motorIndex);
-//     print(" state: ", motorIndex);
-//     switch(motorState[motorIndex]) {
-//       case MOTOR_STATE_INIT:
-//         println("INIT", motorIndex);
-//         break;
-//       case MOTOR_STATE_CLOSING:
-//         println("CLOSING", motorIndex);
-//         break;
-//       case MOTOR_STATE_CLOSED:
-//         println("CLOSED", motorIndex);
-//         break;
-//       case MOTOR_STATE_RUNSPEED:
-//         println("RUNSPEED", motorIndex);
-//         break;
-//       case MOTOR_STATE_RUN:
-//         println("RUN", motorIndex);
-//         break;
-//       case MOTOR_STATE_RUN_HOME:
-//         println("RUN_HOME", motorIndex);
-//         break;
-//       case MOTOR_STATE_STOP:
-//         println("STOP", motorIndex);
-//         break;
-//       case MOTOR_STATE_STOP_NOW:
-//         println("STOP_NOW", motorIndex);
-//         break;
-//       case MOTOR_STATE_STOP_BY_CLOSE_LIMIT:
-//         println("STOP_BY_CLOSE_LIMIT", motorIndex);
-//         break;
-//       case MOTOR_STATE_OPENING:
-//         println("OPENING", motorIndex);
-//         break;
-//       case MOTOR_STATE_OPEN:
-//         println("OPEN", motorIndex);
-//         break;
-//       default:
-//         println("UNKNOWN!!!!!", motorIndex);
-//         break;
-//     }
-//     print(" spd: ", motorIndex);
-//     print(mSpeed, motorIndex);
-//     print(" pos: ", motorIndex);
-//     print(curPosition, motorIndex);
-//     print(" trgt: ", motorIndex);
-//     println(targetOpenPosition[motorIndex], motorIndex);
-//     println("-----------------------------------------------------", motorIndex);
-// }
 
 void stepperSetAcceleration(float acceleration, int motorIndex) {
   if (motorIndex == LEFT) {
@@ -311,85 +252,6 @@ void initiateAction(int motorIndex) {
   }
 }
 
-// int setState(int motorIndex) {
-//   if (!motorEnabled(motorIndex)) {
-//     return MOTOR_STATE_NOTHING;
-//   }
-
-//   // Close Limit Switch
-//   if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
-//     closeLimitSwitchState[motorIndex] = digitalRead(closeLimitSwitchPin[motorIndex]);
-//     if (closeLimitSwitchState[motorIndex] != lastCloseLimitSwitchState[motorIndex]) {
-//       if (closeLimitSwitchState[motorIndex] == LOW) {
-//         print("Limit Switch Closed ", motorIndex);
-//         println(closeLimitSwitchPin[motorIndex], motorIndex);
-//         // If starting while the close limit switch is closed, set ready to open.
-//         if (!initialized[motorIndex] || motorState[motorIndex] == MOTOR_STATE_CLOSING) {
-//           println("Initialized", motorIndex);
-//           initialized[motorIndex] = true;
-//           currentDirection[motorIndex] = openingDirection[motorIndex];
-//           motorState[motorIndex] = MOTOR_STATE_CLOSED;
-//         } else {
-//           motorState[motorIndex] = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
-//         }
-//       } else {
-//         // print("Limit Switch Open ");
-//         // println(closeLimitSwitchPin);
-//       }
-//       lastCloseLimitSwitchState[motorIndex] = closeLimitSwitchState[motorIndex];
-//       lastCloseLimitSwitchTime[motorIndex] = 0;
-//     }
-//   }
-//   return motorState[motorIndex];
-// }
-
-// void run(int motorIndex) {
-//   if (!motorEnabled(motorIndex)) {
-//     return;
-//   }
-//   int thisState = setState(motorIndex);
-//   switch(thisState) {
-//     case MOTOR_STATE_NOTHING:
-//     case MOTOR_STATE_INIT:
-//       break;
-//     case MOTOR_STATE_RUNSPEED:
-//     case MOTOR_STATE_CLOSING:
-//       // runningLEDState = HIGH;
-//       // stepper.runSpeed();
-//       // moveTo(targetClosePosition[motorIndex], motorIndex);
-//       stepperRun(motorIndex);
-//       // stepperRunToPosition(motorIndex);
-//       break;
-//     case MOTOR_STATE_OPENING:
-//       if (initialized[motorIndex]) {
-//         // runningLEDState = HIGH;
-//         stepperRunToPosition(motorIndex);
-//         // stepper.runSpeedToPosition();
-//       }
-//       break;
-//     case MOTOR_STATE_CLOSED:
-//       currentDirection[motorIndex] = openingDirection[motorIndex];
-//       setSpeed(0, motorIndex);
-//       stepperStop(motorIndex);
-//       stepperSetCurrentPosition(0, motorIndex);
-//       break;
-//     case MOTOR_STATE_OPEN:
-//       currentDirection[motorIndex] = closingDirection[motorIndex];
-//       setSpeed(0, motorIndex);
-//       stepperStop(motorIndex);
-//       break;
-//     case MOTOR_STATE_STOP:
-//       setSpeed(0, motorIndex);
-//       stepperStop(motorIndex);
-//       break;
-//     case MOTOR_STATE_STOP_NOW:
-//       setSpeed(0, motorIndex);
-//       stepperStop(motorIndex);
-//       stepperDisableOutputs(motorIndex);
-//       break;
-//   }
-// }
-
 void checkLimitSwitchClosed(int motorIndex) {
   closeLimitSwitchState[motorIndex] = digitalRead(closeLimitSwitchPin[motorIndex]);
   if (closeLimitSwitchState[motorIndex] != lastCloseLimitSwitchState[motorIndex]) {
@@ -436,79 +298,43 @@ void setup() {
     }
 
     delay(1500);  // avoids startup pause
-
-    // pinMode(DOD_PIN_initiateActionButtonPin, INPUT_PULLUP);
-
-    // if (LEFT_ENABLED) {
-    //   motorState[LEFT] = MOTOR_STATE_INIT;
-    //   pinMode(closeLimitSwitchPin[LEFT], INPUT_PULLUP);
-    //   closeLimitSwitchState[LEFT] = digitalRead(closeLimitSwitchPin[LEFT]);
-    //   lastCloseLimitSwitchState[LEFT] = closeLimitSwitchState[LEFT];
-    //   if (closeLimitSwitchState[LEFT] == LOW) {
-    //     motorState[LEFT] = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
-    //     if (!initialized[LEFT]) {
-    //       initialized[LEFT] = true;
-    //       currentDirection[LEFT] = openingDirection[LEFT];
-    //       motorState[LEFT] = MOTOR_STATE_CLOSED;
-    //     }
-    //   }
-
-
-    // if (motorEnabled(RIGHT) {
-    //   pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
-    //   closeLimitSwitchState[RIGHT] = digitalRead(closeLimitSwitchPin[RIGHT]);
-    //   lastCloseLimitSwitchState[RIGHT] = closeLimitSwitchState[RIGHT];
-
-    //   print("closeLimitSwitchState: ", RIGHT);
-    //   println(closeLimitSwitchState[RIGHT], RIGHT);
-
-    //   if (closeLimitSwitchState[RIGHT] == LOW) {
-    //     motorState[RIGHT] = MOTOR_STATE_STOP_BY_CLOSE_LIMIT;
-    //     if (!initialized[RIGHT]) {
-    //       initialized[RIGHT] = true;
-    //       currentDirection[RIGHT] = openingDirection[RIGHT];
-    //       motorState[RIGHT] = MOTOR_STATE_CLOSED;
-    //     }
-    //   }
-    //   // rightStepper.setMaxSpeed(MAX_SPEED);
-    //   // // rightStepper.setAcceleration(100);
-    //   // rightStepper.setSpeed(currentDirection[RIGHT] * MAX_SPEED);
-    // }
-  // }
 }
 
 void loop() {
 
-    if ( lastInitiateActionTime >= debounceTime) {
-    initiateActionButtonState = digitalRead(initiateActionButtonPin);
-    if (initiateActionButtonState != lastInitiateActionButtonState) {
-      if (initiateActionButtonState == HIGH) {
-        // if (DEBUG) {
-        //   Serial.print("initiateActionButtonState PRESSED ");
-        //   Serial.println(initiateActionButtonState);
-        // }
-        initiateAction(LEFT);
-        initiateAction(RIGHT);
+  if (wireState != lastWireState) {
+    if (wireState == SIGNAL_INITIATE_BUTTON_HIGH) {
+      if (DEBUG) {
+        Serial.println("initiate Action through I2C");
       }
-      lastInitiateActionButtonState = initiateActionButtonState;
+
+      initiateAction(LEFT);
+      initiateAction(RIGHT);
+      wireState = 0;
     }
-    lastInitiateActionTime = 0;
+    lastWireState = wireState;
   }
+
+  // if ( lastInitiateActionTime >= debounceTime) {
+  //   initiateActionButtonState = digitalRead(initiateActionButtonPin);
+  //   if (initiateActionButtonState != lastInitiateActionButtonState) {
+  //     if (initiateActionButtonState == HIGH) {
+  //       // if (DEBUG) {
+  //       //   Serial.print("initiateActionButtonState PRESSED ");
+  //       //   Serial.println(initiateActionButtonState);
+  //       // }
+  //       initiateAction(LEFT);
+  //       initiateAction(RIGHT);
+  //     }
+  //     lastInitiateActionButtonState = initiateActionButtonState;
+  //   }
+  //   lastInitiateActionTime = 0;
+  // }
 
   for (int motorIndex=0; motorIndex<MOTOR_STATE_RUNSPEED_CLOSING; motorIndex++) {
     if (motorEnabled(motorIndex)) {
       if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
         checkLimitSwitchClosed(motorIndex);
-        // closeLimitSwitchState[motorIndex] = digitalRead(closeLimitSwitchPin[motorIndex]);
-        // if (closeLimitSwitchState[motorIndex] != lastCloseLimitSwitchState[motorIndex]) {
-        //   if (closeLimitSwitchState[motorIndex] == LOW) {
-        //     // if closing or closed already
-        //     if (motorState[motorIndex] < MOTOR_STATE_STOP) {
-        //       motorState[motorIndex] = MOTOR_STATE_STOP;
-        //     }
-        //   }
-        //   lastCloseLimitSwitchState[motorIndex] = closeLimitSwitchState[motorIndex];
-        // }
         lastCloseLimitSwitchTime[motorIndex] = 0;
       }
 
@@ -573,92 +399,6 @@ void loop() {
       }
     }
   } // for motorIndex
-
-  // if (MOTORS_ENABLED) {
-  //   if ( lastInitiateActionTime >= debounceTime) {
-  //     initiateActionButtonState = digitalRead(DOD_PIN_initiateActionButtonPin);
-  //     if (initiateActionButtonState != lastInitiateActionButtonState) {
-  //       if (DEBUG) {
-  //         Serial.print("initiateActionButtonState ");
-  //         Serial.print(initiateActionButtonState);
-  //         Serial.println("    INITIATING!");
-  //       }
-  //       if (LEFT_ENABLED) {
-  //         initiateAction(LEFT);
-  //       }
-  //       if (RIGHT_ENABLED) {
-  //         initiateAction(RIGHT);
-  //       }
-  //       lastInitiateActionButtonState = initiateActionButtonState;
-  //     }
-  //   }
-  //   // if (wireState == SIGNAL_STOP_EVERYTHING) {
-  //   //   if (DEBUG) {
-  //   //     Serial.println("Sending SIGNAL_STOP_EVERYTHING");
-  //   //   }
-  //   //   if (LEFT_ENABLED) {
-  //   //     // leftMotor.stopEverything();
-  //   //     // leftStepper->release();
-  //   //   }
-  //   //   if (RIGHT_ENABLED) {
-  //   //     // rightMotor.stopEverything();
-  //   //     // rightStepper.release();
-  //   //   }
-  //   //   wireState = 0;
-  //   // }
-  //   // if (wireState == SIGNAL_INITIATE_BUTTON_HIGH) {
-  //   //   if (DEBUG) {
-  //   //     Serial.println("Sending SIGNAL_INITIATE_BUTTON_HIGH");
-  //   //   }
-  //   //   // if (LEFT_ENABLED) {
-  //   //     // leftMotor.initiateAction(HIGH);
-  //   //     initiateAction(HIGH, LEFT);
-  //   //   // }
-  //   //   // if (RIGHT_ENABLED) {
-  //   //     initiateAction(HIGH, RIGHT);
-  //   //     // rightMotor.initiateAction(HIGH);
-  //   //   // }
-  //   //   wireState = 0;
-  //   // }
-
-  //   run(LEFT);
-  //   run(RIGHT);
-  //   // if (LEFT_ENABLED) {
-  //   //   // leftMotor.run();
-  //   // }
-  //   // if (RIGHT_ENABLED) {
-  //   //   // rightMotor.run();
-  //   // }
-
-  //   // TODO send motorState back to main to control sounds/leds
-  //   // if (LEFT_ENABLED) {
-  //   //   leftMotorState = leftMotor.getState();
-  //   // }
-  //   // if (RIGHT_ENABLED) {
-  //   //   rightMotorState = rightMotor.getState();
-  //   // }
-
-  //   if (printTime >= REPORT_TIME) {
-  //     printTime = 0;
-  //     if (LEFT_ENABLED) {
-  //       report(LEFT);
-  //     }
-  //     if (RIGHT_ENABLED) {
-  //       report(RIGHT);
-  //     }
-  //   } 
-
-  // }
-
-  // // if (DEBUG && MOTORS_ENABLED && printTime >= REPORT_TIME) {
-  // //   printTime = 0;
-  // //   if (LEFT_ENABLED) {
-  // //     leftMotor.report();
-  // //   }
-  // //   if (RIGHT_ENABLED) {
-  // //     rightMotor.report();
-  // //   }
-  // // } 
 
 }
 
