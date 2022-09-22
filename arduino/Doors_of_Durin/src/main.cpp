@@ -27,9 +27,9 @@ elapsedMillis lastInitiateActionTime;
 
 const bool MOTORS_ENABLED = true;
 const bool SOUND_ENABLED = false;
-const bool LEDS_ENABLED = false;
+const bool LEDS_ENABLED = true;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 const int debounceTime = 150;
 
 // elapsedMillis printTime;
@@ -135,7 +135,4 @@ void loop() {
   //   sound->run(motorState);
   // }
 
-  // if (LEDS_ENABLED) {
-  //   strips->loop();
-  // }
 }

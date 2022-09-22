@@ -10,7 +10,7 @@
 const bool MOTORS_ENABLED = true;
 const bool LEFT_ENABLED = true;
 const bool RIGHT_ENABLED = true;
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 unsigned int REPORT_TIME = 2500;
 
