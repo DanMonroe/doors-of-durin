@@ -1,21 +1,15 @@
 #ifndef _motorStates_h
 #define _motorStates_h
 
-  #pragma once
-  #include <Arduino.h>
+#pragma once
+// #include <Arduino.h>
 
 // State definitions
-#define MOTOR_STATE_NOTHING -1
-#define MOTOR_STATE_INIT 1
-#define MOTOR_STATE_CLOSING 2
-#define MOTOR_STATE_CLOSED 3
-#define MOTOR_STATE_RUNSPEED 4
-#define MOTOR_STATE_RUN 5
-#define MOTOR_STATE_RUN_HOME 6
-#define MOTOR_STATE_STOP 7
-#define MOTOR_STATE_STOP_NOW 8
-#define MOTOR_STATE_STOP_BY_CLOSE_LIMIT 9
-#define MOTOR_STATE_OPENING 10
-#define MOTOR_STATE_OPEN 11
+#define MOTOR_STATE_NOTHING 0
+#define MOTOR_STATE_RUN_CLOSING 1
+#define MOTOR_STATE_RUNSPEED_CLOSING 2
+#define MOTOR_STATE_STOP 3
+#define MOTOR_STATE_RUN_OPENING 4
+#define MOTOR_STATE_RUNSPEED_OPENING 5
 
 #endif
