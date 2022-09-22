@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "pins.h"
+// #include "pins.h"
 #include "motorStates.h"
 // #include <DOD_PixelStrips.h>
 // #include <Wire.h>
@@ -10,7 +10,7 @@
 #include <elapsedMillis.h>
 
 const bool MOTORS_ENABLED = true;
-const bool LEFT_ENABLED = false;
+const bool LEFT_ENABLED = true;
 const bool RIGHT_ENABLED = true;
 const bool DEBUG = false;
 
