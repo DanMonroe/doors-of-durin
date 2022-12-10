@@ -95,6 +95,7 @@ void checkInitiateActionButton() {
 
 void setup() {
 
+  delay( 2000 ); // power-up safety delay
 
   if (MOTORS_ENABLED) {
     // Initialize I2C communications as Master

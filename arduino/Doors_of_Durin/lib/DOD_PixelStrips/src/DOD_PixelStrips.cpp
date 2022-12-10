@@ -8,7 +8,15 @@
 #define DATA_PIN_LEFT A0
 #define DATA_PIN_RIGHT A1
 
-const int NUM_LEDS_TOTAL = NUM_LEDS_LEFT + NUM_LEDS_RIGHT;
+#define NUM_LEDS_INNER_LEFT 104
+#define NUM_LEDS_INNER_RIGHT 104
+#define DATA_PIN_INNER_LEFT A2
+#define DATA_PIN_INNER_RIGHT A3
+
+// const int NUM_LEDS_TOTAL = NUM_LEDS_LEFT + NUM_LEDS_RIGHT;
+
+uint8_t BRIGHTNESS = 128;
+// uint8_t BRIGHTNESS = 255;
 
 // https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino
 CRGBPalette16 pacifica_palette_1 = 
@@ -25,13 +33,24 @@ CRGBPalette16 pacifica_palette_3 =
 
 CRGB ledsLeft[NUM_LEDS_LEFT];
 CRGB ledsRight[NUM_LEDS_RIGHT];
+
+CRGB ledsInnerLeft[NUM_LEDS_INNER_LEFT];
+CRGB ledsInnerRight[NUM_LEDS_INNER_RIGHT];
 // CRGB leds[NUM_LEDS_LEFT + NUM_LEDS_RIGHT];
 
 void DOD_PixelStrips::setupStrips() {
   Serial.println("setupStrips");
 
+  // limit my draw to 20A at 5v of power draw
+  FastLED.setMaxPowerInVoltsAndMilliamps(5,20000); 
+
+  FastLED.setBrightness(  BRIGHTNESS );
+
   FastLED.addLeds<WS2812B, DATA_PIN_LEFT, GRB>(ledsLeft, NUM_LEDS_LEFT).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<WS2812B, DATA_PIN_RIGHT, GRB>(ledsRight, NUM_LEDS_RIGHT).setCorrection( TypicalLEDStrip );
+
+  FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsInnerLeft, NUM_LEDS_INNER_LEFT).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsInnerRight, NUM_LEDS_INNER_RIGHT).setCorrection( TypicalLEDStrip );
 
   // fill_solid( ledsLeft, NUM_LEDS_LEFT, CRGB( 5, 0, 200));
   // fill_solid( ledsRight, NUM_LEDS_RIGHT, CRGB( 5, 0, 200));
@@ -68,6 +87,9 @@ void DOD_PixelStrips::pacifica_loop() {
   // Clear out the LED array to a dim background blue-green
   fill_solid( ledsLeft, NUM_LEDS_LEFT, CRGB( 2, 6, 10));
   fill_solid( ledsRight, NUM_LEDS_RIGHT, CRGB( 2, 6, 10));
+
+  fill_solid( ledsInnerLeft, NUM_LEDS_LEFT, CRGB( 2, 6, 10));
+  fill_solid( ledsInnerRight, NUM_LEDS_RIGHT, CRGB( 2, 6, 10));
 
   // Render each of four layers, with different scales and speeds, that vary over time
   pacifica_one_layer( pacifica_palette_1, sCIStart1, beatsin16( 3, 11 * 256, 14 * 256), beatsin8( 10, 70, 130), 0-beat16( 301) );
@@ -106,6 +128,26 @@ void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, ui
     CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
     ledsRight[i] += c;
   }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsInnerLeft[i] += c;
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsInnerRight[i] += c;
+  }
 }
 
 // Add extra 'white' to areas where the four layers of light have lined up brightly
@@ -133,18 +175,48 @@ void DOD_PixelStrips::pacifica_add_whitecaps() {
       ledsRight[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
     }
   }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsInnerLeft[i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsInnerLeft[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsInnerRight[i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsInnerRight[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
 }
 
 // Deepen the blues and greens
 void DOD_PixelStrips::pacifica_deepen_colors() {
   for( uint16_t i = 0; i < NUM_LEDS_LEFT; i++) {
-    ledsLeft[i].blue = scale8( ledsLeft[i].blue,  145); 
-    ledsLeft[i].green= scale8( ledsLeft[i].green, 200); 
-    ledsLeft[i] |= CRGB( 2, 5, 7);
+    ledsInnerLeft[i].blue = scale8( ledsInnerLeft[i].blue,  145); 
+    ledsInnerLeft[i].green= scale8( ledsInnerLeft[i].green, 200); 
+    ledsInnerLeft[i] |= CRGB( 2, 5, 7);
   }
   for( uint16_t i = 0; i < NUM_LEDS_RIGHT; i++) {
-    ledsRight[i].blue = scale8( ledsRight[i].blue,  145); 
-    ledsRight[i].green= scale8( ledsRight[i].green, 200); 
-    ledsRight[i] |= CRGB( 2, 5, 7);
+    ledsInnerRight[i].blue = scale8( ledsInnerRight[i].blue,  145); 
+    ledsInnerRight[i].green= scale8( ledsInnerRight[i].green, 200); 
+    ledsInnerRight[i] |= CRGB( 2, 5, 7);
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
+    ledsInnerLeft[i].blue = scale8( ledsInnerLeft[i].blue,  145); 
+    ledsInnerLeft[i].green= scale8( ledsInnerLeft[i].green, 200); 
+    ledsInnerLeft[i] |= CRGB( 2, 5, 7);
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
+    ledsInnerRight[i].blue = scale8( ledsInnerRight[i].blue,  145); 
+    ledsInnerRight[i].green= scale8( ledsInnerRight[i].green, 200); 
+    ledsInnerRight[i] |= CRGB( 2, 5, 7);
   }
 }
