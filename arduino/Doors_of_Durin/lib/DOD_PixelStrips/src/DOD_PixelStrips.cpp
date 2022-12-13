@@ -19,12 +19,23 @@
 #define DATA_PIN_INNER_LEFT A2
 #define DATA_PIN_INNER_RIGHT A3
 
+#define DATA_PIN_HUE_MONITOR A7
 #define DATA_PIN_BRIGHTNESS_MONITOR A6
+// #define DATA_PIN_HUE_MONITOR A6
+// #define DATA_PIN_BRIGHTNESS_MONITOR A7
 
 // const int NUM_LEDS_TOTAL = NUM_LEDS_DOOR_LEFT + NUM_LEDS_DOOR_RIGHT;
 
-uint8_t BRIGHTNESS = 128;
-// uint8_t BRIGHTNESS = 255;
+uint8_t MASTER_BRIGHTNESS = 200;
+
+uint8_t min_brightness = 30;   // Set a minimum brightness level.
+uint8_t brightness;
+
+int potVal_Hue;         // Variable to store potentiometer A value (for hue)
+int potVal_Brightness;  // Variable to store potentiometer B value (for brightness)
+uint8_t hue_monitor;            // Hue color (0-255)
+
+int last_hue = -1;
 
 // https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino
 CRGBPalette16 pacifica_palette_1 = 
@@ -42,12 +53,12 @@ CRGBPalette16 pacifica_palette_3 =
 CRGB ledsLeftDoor[NUM_LEDS_DOOR_LEFT];
 CRGB ledsRightDoor[NUM_LEDS_DOOR_RIGHT];
 
-// CRGB ledsInnerLeft[NUM_LEDS_INNER_LEFT];
-// CRGB ledsInnerRight[NUM_LEDS_INNER_RIGHT];
-CRGB ledsLeftMonitor[NUM_LEDS_MONITOR_LEFT];
-CRGB ledsLeftSymbol[NUM_LEDS_SYMBOL_LEFT];
-CRGB ledsRightMonitor[NUM_LEDS_MONITOR_RIGHT];
-CRGB ledsRightSymbol[NUM_LEDS_SYMBOL_RIGHT];
+CRGB ledsInnerLeft[NUM_LEDS_INNER_LEFT];
+CRGB ledsInnerRight[NUM_LEDS_INNER_RIGHT];
+// CRGB ledsLeftMonitor[NUM_LEDS_MONITOR_LEFT];
+// CRGB ledsLeftSymbol[NUM_LEDS_SYMBOL_LEFT];
+// CRGB ledsRightMonitor[NUM_LEDS_MONITOR_RIGHT];
+// CRGB ledsRightSymbol[NUM_LEDS_SYMBOL_RIGHT];
 
 void DOD_PixelStrips::setupStrips() {
   Serial.println("setupStrips");
@@ -55,37 +66,147 @@ void DOD_PixelStrips::setupStrips() {
   // limit my draw to 20A at 5v of power draw
   FastLED.setMaxPowerInVoltsAndMilliamps(5,20000); 
 
-  FastLED.setBrightness(  BRIGHTNESS );
+  FastLED.setBrightness( MASTER_BRIGHTNESS );
 
   FastLED.addLeds<WS2812B, DATA_PIN_DOOR_LEFT, GRB>(ledsLeftDoor, NUM_LEDS_DOOR_LEFT).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<WS2812B, DATA_PIN_DOOR_RIGHT, GRB>(ledsRightDoor, NUM_LEDS_DOOR_RIGHT).setCorrection( TypicalLEDStrip );
 
-  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsInnerLeft, NUM_LEDS_INNER_LEFT).setCorrection( TypicalLEDStrip );
-  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsInnerRight, NUM_LEDS_INNER_RIGHT).setCorrection( TypicalLEDStrip );
-  FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsLeftMonitor, NUM_LEDS_MONITOR_LEFT).setCorrection( TypicalLEDStrip );
-  FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsLeftSymbol, NUM_LEDS_MONITOR_LEFT + NUM_LEDS_SYMBOL_LEFT).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsInnerLeft, NUM_LEDS_INNER_LEFT).setCorrection( TypicalLEDStrip );
+  FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsInnerRight, NUM_LEDS_INNER_RIGHT).setCorrection( TypicalLEDStrip );
 
-  FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsRightMonitor, NUM_LEDS_MONITOR_RIGHT).setCorrection( TypicalLEDStrip );
-  FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsRightSymbol, NUM_LEDS_MONITOR_RIGHT + NUM_LEDS_SYMBOL_RIGHT).setCorrection( TypicalLEDStrip );
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsLeftMonitor, NUM_LEDS_MONITOR_LEFT).setCorrection( TypicalLEDStrip );
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsLeftSymbol, NUM_LEDS_MONITOR_LEFT + NUM_LEDS_SYMBOL_LEFT).setCorrection( TypicalLEDStrip );
+
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsRightMonitor, NUM_LEDS_MONITOR_RIGHT).setCorrection( TypicalLEDStrip );
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsRightSymbol, NUM_LEDS_MONITOR_RIGHT + NUM_LEDS_SYMBOL_RIGHT).setCorrection( TypicalLEDStrip );
 
   fill_solid(ledsLeftDoor, NUM_LEDS_DOOR_LEFT, CRGB::Black);
   fill_solid(ledsRightDoor, NUM_LEDS_DOOR_RIGHT, CRGB::Black);
   
-  fill_solid(ledsLeftMonitor, NUM_LEDS_MONITOR_LEFT, CRGB::Black);
-  fill_solid(ledsLeftSymbol, NUM_LEDS_SYMBOL_LEFT, CRGB::Black);
+  fill_solid(ledsInnerLeft, NUM_LEDS_INNER_LEFT, CRGB::LightSkyBlue);
+  fill_solid(ledsInnerRight, NUM_LEDS_INNER_RIGHT, CRGB::Black);
+  // fill_solid(ledsLeftMonitor, NUM_LEDS_MONITOR_LEFT, CRGB::Black);
+  // fill_solid(ledsLeftSymbol, NUM_LEDS_SYMBOL_LEFT, CRGB::Black);
 
-  fill_solid(ledsRightMonitor, NUM_LEDS_INNER_RIGHT, CRGB::Black);
-  fill_solid(ledsRightSymbol, NUM_LEDS_SYMBOL_RIGHT, CRGB::Black);
+  // fill_solid(ledsRightMonitor, NUM_LEDS_MONITOR_RIGHT, CRGB::Black);
+  // fill_solid(ledsRightSymbol, NUM_LEDS_SYMBOL_RIGHT, CRGB::Black);
 
+  // pinMode(DATA_PIN_HUE_MONITOR, INPUT);         // Set pin as an input.
+  // pinMode(DATA_PIN_BRIGHTNESS_MONITOR, INPUT);  // Set pin as an input.
+  
   FastLED.show();
-
+// Serial.print("yo");
 }
 
 void DOD_PixelStrips::loop() {
   EVERY_N_MILLISECONDS(20) {
-    DOD_PixelStrips::pacifica_loop();
+  // EVERY_N_MILLISECONDS(20) {
+    // DOD_PixelStrips::pacifica_loop();
+    // DOD_PixelStrips::checkKnobs();
+    // fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::OrangeRed);
+
+
+  int my_potVal_Hue = analogRead(DATA_PIN_HUE_MONITOR);  // Read potentiometer A (for hue).
+
+  CHSV spectrumcolor;
+  spectrumcolor.saturation = 	255;
+  spectrumcolor.value = 255;
+
+  if(my_potVal_Hue != last_hue) {
+    int my_hue_monitor = map(my_potVal_Hue, 0, 1023, 0, 255);  // map(value, fromLow, fromHigh, toLow, toHigh)
+    spectrumcolor.hue = my_hue_monitor;
+    last_hue = my_potVal_Hue;
+  // } else {
+  //   spectrumcolor.hue = random(255);
+  //   last_hue = -1;
+  }
+  for (int i = 0; i < NUM_LEDS_MONITOR_LEFT; i++) {
+    hsv2rgb_spectrum( spectrumcolor, ledsInnerLeft[i] );
+    // ledsInnerLeft[i].setHue(random_color);
+  }
+
+  // int my_potVal_Brightness = analogRead(DATA_PIN_BRIGHTNESS_MONITOR);  // Read potentiometer B (for brightness).
+  // int my_brightness = map(my_potVal_Brightness, 0, 1023, min_brightness, 255);
+
+  // for (int i = 0; i < 42; i++) {
+  //   // ledsInnerLeft[i] = CHSV(my_hue_monitor, 255, my_brightness);  // hue comes from pot A, and brightness value is scaled based on pot B.
+
+  //   ledsInnerLeft[i].setHue( 28);
+  // }
+  // for (int i = 0; i < NUM_LEDS_MONITOR_LEFT; i++) {
+  // // for (int i = 42; i < NUM_LEDS_MONITOR_LEFT; i++) {
+  //   // ledsInnerLeft[i] = CHSV(my_hue_monitor, 255, my_brightness);  // hue comes from pot A, and brightness value is scaled based on pot B.
+
+  //   ledsInnerLeft[i].setHue( my_hue_monitor);
+  //   // ledsInnerLeft[i].setHue( 224);
+  // }
+
+
+
+
+    // int foo_pot_hue = analogRead(DATA_PIN_HUE_MONITOR);
+
+    // int foo_hue_map = map(foo_pot_hue, 0, 1023, 0, 4); 
+
+    // switch (foo_hue_map) {
+    //   case 0:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Red);
+    //     break;
+    //   case 1:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Blue);
+    //     break;
+    //   case 2:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Green);
+    //     break;
+    //   case 3:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Purple);
+    //     break;
+    //   case 4:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Orange);
+    //     break;
+    //   default:
+    //     fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::Brown);
+    //     break;
+    // }
+
     FastLED.show();
   }
+}
+
+void DOD_PixelStrips::setMonitorHue(){
+  for (int i = 0; i < NUM_LEDS_MONITOR_LEFT; i++) {
+    // ledsInnerLeft[i] = CHSV(64, 255, 255);  // hue comes from pot A, and brightness value is scaled based on pot B.
+    ledsInnerLeft[i] = CHSV(hue_monitor, 255, 255);  // hue comes from pot A, and brightness value is scaled based on pot B.
+  }
+  // FastLED.setBrightness(128);
+  // for (int i = 0; i < NUM_LEDS_MONITOR_RIGHT; i++) {
+  //   ledsRightMonitor[i] = CHSV(hue_monitor, 255, 255);  // hue comes from pot A, and brightness value is scaled based on pot B.
+  // }
+}
+
+void DOD_PixelStrips::checkKnobs(){
+  potVal_Hue = analogRead(DATA_PIN_HUE_MONITOR);  // Read potentiometer A (for hue).
+  //potValA = map(potValA, 1023, 0, 0, 1023);  // Reverse reading if potentiometer is wired backwards. 
+  hue_monitor = map(potVal_Hue, 0, 1023, 0, 255);  // map(value, fromLow, fromHigh, toLow, toHigh)
+
+  potVal_Brightness = analogRead(DATA_PIN_BRIGHTNESS_MONITOR);  // Read potentiometer B (for brightness).
+  brightness = map(potVal_Brightness, 0, 1023, min_brightness, 255);
+  // brightness = map(potVal_Brightness, 0, 1023, min_brightness, MASTER_BRIGHTNESS);
+      // Map value between min_brightness and MASTER brightness values.
+      // Note: We are limiting the lowest possible brightness value to the
+      // min_brightness value assigned up top.
+  // FastLED.setBrightness(brightness);  // Set master brightness based on potentiometer position.
+
+  // DOD_PixelStrips::setMonitorHue();
+    for (int i = 0; i < NUM_LEDS_MONITOR_LEFT; i++) {
+    // ledsInnerLeft[i] = CHSV(64, 255, 255);  // hue comes from pot A, and brightness value is scaled based on pot B.
+    ledsInnerLeft[i] = CHSV(hue_monitor, 255, brightness);  // hue comes from pot A, and brightness value is scaled based on pot B.
+    // ledsInnerLeft[i] = CHSV(hue_monitor, 255, 255);  // hue comes from pot A, and brightness value is scaled based on pot B.
+  }
+
+
+  // Serial.print("  pot A: "); Serial.print(potVal_Hue); Serial.print("    hue_monitor: "); Serial.print(hue_monitor);
+  //Serial.print("    pot B: "); Serial.print(potValB); Serial.print("    brightness: "); Serial.println(brightness);
 }
 
 void DOD_PixelStrips::pacifica_loop() {
