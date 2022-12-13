@@ -36,6 +36,7 @@ int potVal_Brightness;  // Variable to store potentiometer B value (for brightne
 uint8_t hue_monitor;            // Hue color (0-255)
 
 int last_hue = -1;
+int last_brightness = -1;
 
 // https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino
 CRGBPalette16 pacifica_palette_1 = 
@@ -106,23 +107,23 @@ void DOD_PixelStrips::loop() {
     // fill_solid(ledsInnerLeft, NUM_LEDS_MONITOR_LEFT, CRGB::OrangeRed);
 
 
-  int my_potVal_Hue = analogRead(DATA_PIN_HUE_MONITOR);  // Read potentiometer A (for hue).
+  int my_potVal_hue = analogRead(DATA_PIN_HUE_MONITOR);  // Read potentiometer for hue.
+  int my_potVal_brightness = analogRead(DATA_PIN_BRIGHTNESS_MONITOR);  // Read potentiometer for brightness.
 
   CHSV spectrumcolor;
   spectrumcolor.saturation = 	255;
-  spectrumcolor.value = 255;
+  // spectrumcolor.value = 255;
 
-  if(my_potVal_Hue != last_hue) {
-    int my_hue_monitor = map(my_potVal_Hue, 0, 1023, 0, 255);  // map(value, fromLow, fromHigh, toLow, toHigh)
-    spectrumcolor.hue = my_hue_monitor;
-    last_hue = my_potVal_Hue;
-  // } else {
-  //   spectrumcolor.hue = random(255);
-  //   last_hue = -1;
+  if((my_potVal_hue != last_hue) || (my_potVal_brightness != last_brightness)) {
+    int this_hue_monitor = map(my_potVal_hue, 0, 1023, 0, 255);  // map(value, fromLow, fromHigh, toLow, toHigh)
+    int this_brightness_monitor = map(my_potVal_brightness, 0, 1023, 0, 255);  // map(value, fromLow, fromHigh, toLow, toHigh)
+    spectrumcolor.hue = this_hue_monitor;
+    spectrumcolor.value = this_brightness_monitor;
+    last_hue = my_potVal_hue;
+    last_brightness = my_potVal_brightness;
   }
   for (int i = 0; i < NUM_LEDS_MONITOR_LEFT; i++) {
     hsv2rgb_spectrum( spectrumcolor, ledsInnerLeft[i] );
-    // ledsInnerLeft[i].setHue(random_color);
   }
 
   // int my_potVal_Brightness = analogRead(DATA_PIN_BRIGHTNESS_MONITOR);  // Read potentiometer B (for brightness).
