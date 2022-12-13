@@ -13,8 +13,7 @@ private:
   DOD_Pixel right[276];
 
 public:
-  void checkKnobs();
-  void setMonitorHue();
+  void checkMonitorControls();
   void pacifica_loop();
   void pacifica_add_whitecaps();
   void pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff);
