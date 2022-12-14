@@ -74,7 +74,7 @@ void DOD_PixelStrips::setupStrips() {
 
 void DOD_PixelStrips::loop() {
   EVERY_N_MILLISECONDS(20) {
-    // DOD_PixelStrips::pacifica_loop();
+    DOD_PixelStrips::pacifica_loop();
     DOD_PixelStrips::checkMonitorControls();
 
     FastLED.show();
