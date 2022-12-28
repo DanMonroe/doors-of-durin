@@ -30,6 +30,8 @@ int potVal_Brightness;  // Variable to store potentiometer B value (for brightne
 int last_hue = -1;
 int last_brightness = -1;
 
+bool gReverseDirection = false;
+
 // https://github.com/FastLED/FastLED/blob/master/examples/Pacifica/Pacifica.ino
 CRGBPalette16 pacifica_palette_1 = 
     { 0x000507, 0x000409, 0x00030B, 0x00030D, 0x000210, 0x000212, 0x000114, 0x000117, 
@@ -41,7 +43,7 @@ CRGBPalette16 pacifica_palette_3 =
     { 0x000208, 0x00030E, 0x000514, 0x00061A, 0x000820, 0x000927, 0x000B2D, 0x000C33, 
       0x000E39, 0x001040, 0x001450, 0x001860, 0x001C70, 0x002080, 0x1040BF, 0x2060FF };
 
-
+CRGBPalette16 fire_palette;
 
 CRGB ledsLeftDoor[NUM_LEDS_DOOR_LEFT];
 CRGB ledsRightDoor[NUM_LEDS_DOOR_RIGHT];
@@ -79,6 +81,25 @@ void DOD_PixelStrips::loop() {
 
     FastLED.show();
   }
+  // EVERY_N_MILLISECONDS(1000) {
+  //   random16_add_entropy( random());  // fire
+
+  //   // Fourth, the most sophisticated: this one sets up a new palette every
+  // // time through the loop, based on a hue that changes every time.
+  // // The palette is a gradient from black, to a dark color based on the hue,
+  // // to a light color based on the hue, to white.
+  // //
+  //   static uint8_t hue = 0;
+  //   hue++;
+  //   CRGB darkcolor  = CHSV(hue,255,192); // pure hue, three-quarters brightness
+  //   CRGB lightcolor = CHSV(hue,128,255); // half 'whitened', full brightness
+  //   fire_palette = CRGBPalette16( CRGB::Black, darkcolor, lightcolor, CRGB::White);
+
+  //   fire2012WithPalette(); // run simulation frame, using palette colors
+
+  //   FastLED.show();
+  // }
+
 }
 
 void DOD_PixelStrips::checkMonitorControls(){
@@ -100,6 +121,73 @@ void DOD_PixelStrips::checkMonitorControls(){
       hsv2rgb_spectrum( spectrumcolor, ledsInnerRight[i] );
     }
   }
+}
+
+#define COOLING  55
+
+// SPARKING: What chance (out of 255) is there that a new spark will be lit?
+// Higher chance = more roaring fire.  Lower chance = more flickery fire.
+// Default 120, suggested range 50-200.
+#define SPARKING 120
+
+
+void DOD_PixelStrips::fire2012WithPalette()
+{
+  // Array of temperature readings at each simulation cell
+  static uint8_t heat[NUM_LEDS_SYMBOL_LEFT];
+
+  // Step 1.  Cool down every cell a little
+    for( int i = 0; i < NUM_LEDS_SYMBOL_LEFT; i++) {
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS_SYMBOL_LEFT) + 2));
+    }
+  
+    // Step 2.  Heat from each cell drifts 'up' and diffuses a little
+    for( int k= NUM_LEDS_SYMBOL_LEFT - 1; k >= 2; k--) {
+      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2] ) / 3;
+    }
+    
+    // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
+    if( random8() < SPARKING ) {
+      int y = random8(7);
+      heat[y] = qadd8( heat[y], random8(160,255) );
+    }
+
+    CHSV spectrumcolor;
+    spectrumcolor.saturation = 	255;
+    spectrumcolor.value = 255;
+    // Step 4.  Map from heat cells to LED colors
+    for( int j = 0; j < NUM_LEDS_SYMBOL_LEFT; j++) {
+      // Scale the heat value from 0-255 down to 0-240
+      // for best results with color palettes.
+// uint8_t colorindex = scale8( heat[j], 240);
+// CRGB color = ColorFromPalette( fire_palette, colorindex);
+// int pixelnumber;
+// if( gReverseDirection ) {
+//   pixelnumber = (NUM_LEDS_SYMBOL_LEFT-1) - j;
+// } else {
+//   pixelnumber = j;
+// }
+// ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + j] = CRGB::Blue;
+// ledsInnerRight[NUM_LEDS_MONITOR_LEFT + j] = CRGB::Green;
+
+      uint8_t colorindex = scale8( heat[j], 240);
+      CRGB color = ColorFromPalette( fire_palette, colorindex, 255);
+      int pixelnumber;
+      if( gReverseDirection ) {
+        pixelnumber = (NUM_LEDS_SYMBOL_LEFT-1) - j;
+      } else {
+        pixelnumber = j;
+      }
+      // ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + pixelnumber] = CRGB::Green;
+      // ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + pixelnumber] = CRGB::Yellow;
+      // spectrumcolor.hue = random8(255);
+      // hsv2rgb_spectrum( spectrumcolor, ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + pixelnumber] );
+      // hsv2rgb_spectrum( spectrumcolor, ledsInnerRight[NUM_LEDS_MONITOR_LEFT + pixelnumber] );
+      ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + pixelnumber] = color;
+      ledsInnerRight[NUM_LEDS_MONITOR_LEFT + pixelnumber] = color;
+      // ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + pixelnumber] = color;
+      // ledsInnerRight[NUM_LEDS_MONITOR_LEFT + pixelnumber] = color;
+    }
 }
 
 void DOD_PixelStrips::pacifica_loop() {
@@ -126,6 +214,10 @@ void DOD_PixelStrips::pacifica_loop() {
 
   // fill_solid( ledsInnerLeft, NUM_LEDS_DOOR_LEFT, CRGB( 2, 6, 10));
   // fill_solid( ledsInnerRight, NUM_LEDS_DOOR_RIGHT, CRGB( 2, 6, 10));
+  for (uint16_t i = 0; i < NUM_LEDS_SYMBOL_LEFT; i++) {
+    ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i] = CRGB( 2, 6, 10);
+    ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i] = CRGB( 2, 6, 10);
+  }
 
   // Render each of four layers, with different scales and speeds, that vary over time
   pacifica_one_layer( pacifica_palette_1, sCIStart1, beatsin16( 3, 11 * 256, 14 * 256), beatsin8( 10, 70, 130), 0-beat16( 301) );
@@ -164,26 +256,26 @@ void DOD_PixelStrips::pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, ui
     CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
     ledsRightDoor[i] += c;
   }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
-  //   waveangle += 250;
-  //   uint16_t s16 = sin16( waveangle ) + 32768;
-  //   uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
-  //   ci += cs;
-  //   uint16_t sindex16 = sin16( ci) + 32768;
-  //   uint8_t sindex8 = scale16( sindex16, 240);
-  //   CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
-  //   ledsInnerLeft[i] += c;
-  // }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
-  //   waveangle += 250;
-  //   uint16_t s16 = sin16( waveangle ) + 32768;
-  //   uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
-  //   ci += cs;
-  //   uint16_t sindex16 = sin16( ci) + 32768;
-  //   uint8_t sindex8 = scale16( sindex16, 240);
-  //   CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
-  //   ledsInnerRight[i] += c;
-  // }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_LEFT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i] += c;
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_RIGHT; i++) {
+    waveangle += 250;
+    uint16_t s16 = sin16( waveangle ) + 32768;
+    uint16_t cs = scale16( s16 , wavescale_half ) + wavescale_half;
+    ci += cs;
+    uint16_t sindex16 = sin16( ci) + 32768;
+    uint8_t sindex8 = scale16( sindex16, 240);
+    CRGB c = ColorFromPalette( p, sindex8, bri, LINEARBLEND);
+    ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i] += c;
+  }
 }
 
 // Add extra 'white' to areas where the four layers of light have lined up brightly
@@ -211,26 +303,26 @@ void DOD_PixelStrips::pacifica_add_whitecaps() {
       ledsRightDoor[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
     }
   }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
-  //   uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
-  //   wave += 7;
-  //   uint8_t l = ledsInnerLeft[i].getAverageLight();
-  //   if( l > threshold) {
-  //     uint8_t overage = l - threshold;
-  //     uint8_t overage2 = qadd8( overage, overage);
-  //     ledsInnerLeft[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
-  //   }
-  // }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
-  //   uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
-  //   wave += 7;
-  //   uint8_t l = ledsInnerRight[i].getAverageLight();
-  //   if( l > threshold) {
-  //     uint8_t overage = l - threshold;
-  //     uint8_t overage2 = qadd8( overage, overage);
-  //     ledsInnerRight[i] += CRGB( overage, overage2, qadd8( overage2, overage2));
-  //   }
-  // }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_LEFT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_RIGHT; i++) {
+    uint8_t threshold = scale8( sin8( wave), 20) + basethreshold;
+    wave += 7;
+    uint8_t l = ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i].getAverageLight();
+    if( l > threshold) {
+      uint8_t overage = l - threshold;
+      uint8_t overage2 = qadd8( overage, overage);
+      ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i] += CRGB( overage, overage2, qadd8( overage2, overage2));
+    }
+  }
 }
 
 // Deepen the blues and greens
@@ -245,14 +337,14 @@ void DOD_PixelStrips::pacifica_deepen_colors() {
     ledsRightDoor[i].green= scale8( ledsRightDoor[i].green, 200); 
     ledsRightDoor[i] |= CRGB( 2, 5, 7);
   }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_LEFT; i++) {
-  //   ledsInnerLeft[i].blue = scale8( ledsInnerLeft[i].blue,  145); 
-  //   ledsInnerLeft[i].green= scale8( ledsInnerLeft[i].green, 200); 
-  //   ledsInnerLeft[i] |= CRGB( 2, 5, 7);
-  // }
-  // for( uint16_t i = 0; i < NUM_LEDS_INNER_RIGHT; i++) {
-  //   ledsInnerRight[i].blue = scale8( ledsInnerRight[i].blue,  145); 
-  //   ledsInnerRight[i].green= scale8( ledsInnerRight[i].green, 200); 
-  //   ledsInnerRight[i] |= CRGB( 2, 5, 7);
-  // }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_LEFT; i++) {
+    ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i].blue = scale8( ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i].blue,  145); 
+    ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i].green= scale8( ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i].green, 200); 
+    ledsInnerLeft[NUM_LEDS_MONITOR_LEFT + i] |= CRGB( 2, 5, 7);
+  }
+  for( uint16_t i = 0; i < NUM_LEDS_SYMBOL_RIGHT; i++) {
+    ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i].blue = scale8( ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i].blue,  145); 
+    ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i].green= scale8( ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i].green, 200); 
+    ledsInnerRight[NUM_LEDS_MONITOR_RIGHT + i] |= CRGB( 2, 5, 7);
+  }
 }

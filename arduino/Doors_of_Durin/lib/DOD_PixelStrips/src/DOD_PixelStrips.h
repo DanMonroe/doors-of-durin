@@ -15,6 +15,7 @@ private:
 public:
   void checkMonitorControls();
   void pacifica_loop();
+  void fire2012WithPalette();
   void pacifica_add_whitecaps();
   void pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff);
   void pacifica_deepen_colors();
