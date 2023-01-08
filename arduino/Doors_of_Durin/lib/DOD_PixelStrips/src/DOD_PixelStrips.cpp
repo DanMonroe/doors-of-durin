@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define FASTLED_INTERNAL        // Suppress build banner
+
 #define NUM_LEDS_DOOR_LEFT 287
 #define NUM_LEDS_DOOR_RIGHT 276
 #define DATA_PIN_DOOR_LEFT A0
@@ -25,11 +27,11 @@
 uint8_t MASTER_BRIGHTNESS = 255;
 #define SYMBOLS_BRIGHTNESS 100;
 
-DEFINE_GRADIENT_PALETTE( firePal_gp ) {
-  100,  100,  0,    0,      //dark red
-  128,  255,  0,    0,      //red
-  220,  255,  255,  0,      //yellow
-  255,  255,  255,  255 };  //white
+// DEFINE_GRADIENT_PALETTE( firePal_gp ) {
+//   100,  100,  0,    0,      //dark red
+//   128,  255,  0,    0,      //red
+//   220,  255,  255,  0,      //yellow
+//   255,  255,  255,  255 };  //white
 // DEFINE_GRADIENT_PALETTE( firePal_gp ) {
 //   0,    0,    0,    0,      //black
 //   100,  100,  0,    0,      //dark red
@@ -53,7 +55,7 @@ int potVal_Brightness;  // Variable to store potentiometer B value (for brightne
 int last_hue = -1;
 int last_brightness = -1;
 
-bool gReverseDirection = false;
+// bool gReverseDirection = false;
 
 extern const TProgmemRGBPalette16 LavaColors_p FL_PROGMEM;
 // extern const TProgmemRGBPalette16 HeatColors_p FL_PROGMEM;
@@ -81,12 +83,24 @@ CRGB ledsLeftDoor[NUM_LEDS_DOOR_LEFT];
 CRGB ledsRightDoor[NUM_LEDS_DOOR_RIGHT];
 
 CRGB ledsInnerLeft[NUM_LEDS_INNER_LEFT];
-CRGB ledsInnerRight[NUM_LEDS_INNER_RIGHT];
+CRGB realLedsInnerRight[NUM_LEDS_INNER_RIGHT];
+CRGBSet leds(realLedsInnerRight, NUM_LEDS_INNER_RIGHT);
+CRGBSet ledsInnerRight(leds(0, NUM_LEDS_INNER_RIGHT));
+// CRGBSet ledsMonitorRight(ledsInnerRight, NUM_LEDS_MONITOR_RIGHT);
+CRGBSet ledsSymbolRight(leds(NUM_LEDS_MONITOR_RIGHT, NUM_LEDS_MONITOR_RIGHT));
 
 
 // Params for width and height
 const uint8_t kMatrixWidth = 5;
 const uint8_t kMatrixHeight = 4;
+
+// First LED is lower left
+  const uint8_t RightXYTable[] = {
+    19,  18,  17,  16,  15,
+    10,  11,  12,  13,  14,
+     9,   8,   7,   6,   5,
+     0,   1,   2,   3,   4
+  };
 
 // #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
 // CRGB leds[ NUM_LEDS ];
@@ -106,13 +120,13 @@ uint8_t XY (uint8_t x, uint8_t y, bool isLeftSide) {
      4,   3,   2,   1,   0
   };
 
-  // First LED is lower left
-  const uint8_t RightXYTable[] = {
-    19,  18,  17,  16,  15,
-    10,  11,  12,  13,  14,
-     9,   8,   7,   6,   5,
-     0,   1,   2,   3,   4
-  };
+  // // First LED is lower left
+  // const uint8_t RightXYTable[] = {
+  //   19,  18,  17,  16,  15,
+  //   10,  11,  12,  13,  14,
+  //    9,   8,   7,   6,   5,
+  //    0,   1,   2,   3,   4
+  // };
 
   uint8_t i = (y * kMatrixWidth) + x;
   uint8_t j = (isLeftSide == true) ? LeftXYTable[i] + NUM_LEDS_MONITOR_LEFT : RightXYTable[i] + (NUM_LEDS_MONITOR_RIGHT);
@@ -137,66 +151,43 @@ void DOD_PixelStrips::setupStrips() {
   FastLED.addLeds<WS2812B, DATA_PIN_INNER_LEFT, GRB>(ledsInnerLeft, NUM_LEDS_INNER_LEFT).setCorrection( TypicalLEDStrip );
   FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsInnerRight, NUM_LEDS_INNER_RIGHT).setCorrection( TypicalLEDStrip );
 
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsMonitorRight, 0, NUM_LEDS_MONITOR_RIGHT).setCorrection( TypicalLEDStrip );
+  // FastLED.addLeds<WS2812B, DATA_PIN_INNER_RIGHT, GRB>(ledsSymbolRight, NUM_LEDS_MONITOR_RIGHT, NUM_LEDS_SYMBOL_RIGHT).setCorrection( TypicalLEDStrip );
+
   fill_solid(ledsLeftDoor, NUM_LEDS_DOOR_LEFT, CRGB::Black);
   fill_solid(ledsRightDoor, NUM_LEDS_DOOR_RIGHT, CRGB::Black);
   
   fill_solid(ledsInnerLeft, NUM_LEDS_INNER_LEFT, CRGB::Purple);
   fill_solid(ledsInnerRight, NUM_LEDS_INNER_RIGHT, CRGB::Purple);
+  // fill_solid(ledsMonitorRight, NUM_LEDS_MONITOR_RIGHT, CRGB::Purple);
+  // fill_solid(ledsSymbolRight, NUM_LEDS_SYMBOL_RIGHT, CRGB::Red);
+
+  // fill_solid(ledsMonitorRight, NUM_LEDS_MONITOR_RIGHT, CRGB::Pink);
   // fill_solid(ledsInnerLeft, NUM_LEDS_INNER_LEFT, CRGB::Black);
   // fill_solid(ledsInnerRight, NUM_LEDS_INNER_RIGHT, CRGB::Black);
  
-
-  // for( uint8_t x = 0; x < kMatrixWidth; x++) {
-  //    for( uint8_t y = 0; y < kMatrixHeight; y++) {
-  //      ledsInnerLeft[ XY( x, y, true) ] = CHSV( random8(), 255, 255);
-     
-  //    }
-  //  }
-
-  // for( uint8_t x = 0; x < kMatrixWidth; x++) {
-  //    for( uint8_t y = 0; y < kMatrixHeight; y++) {
-  //      ledsInnerRight[ XY( x, y, false) ] = CHSV( random8(), 255, 255);
-  //    }
-  //  }
+  // for( uint8_t i = NUM_LEDS_SYMBOL_LEFT; i < NUM_LEDS_INNER_LEFT; i++) {
+  //   ledsInnerLeft[i]  = CRGB::Black;
+  // }
+  // for( uint8_t i = NUM_LEDS_SYMBOL_RIGHT; i < NUM_LEDS_INNER_RIGHT; i++) {
+  //   ledsInnerRight[i]  = CRGB::Black;
+  // }
 
   // FastLED.clear();
   FastLED.show();
 }
 
-void DOD_PixelStrips::matrixDemo() {
-  uint32_t ms = millis();
-    int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / kMatrixWidth));
-    int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / kMatrixHeight));
-    DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
-    if( ms < 5000 ) {
-      FastLED.setBrightness( scale8( 100, (ms * 256) / 5000)); // 100 brightness
-    } else {
-      FastLED.setBrightness(100);
-    }
-    FastLED.show();
-}
-void DOD_PixelStrips::DrawOneFrame( uint8_t startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
-  uint8_t lineStartHue = startHue8;
-  for( uint8_t y = 0; y < kMatrixHeight; y++) {
-    lineStartHue += yHueDelta8;
-    uint8_t pixelHue = lineStartHue;      
-    for( uint8_t x = 0; x < kMatrixWidth; x++) {
-      pixelHue += xHueDelta8;
-      // ledsInnerLeft[ XY(x, y, true)]  = CHSV( pixelHue, 255, 255);
-      ledsInnerRight[ XY(x, y, false)]  = CHSV( pixelHue, 255, 255);
-    }
-  }
-}
-
 void DOD_PixelStrips::loop() {
   // DOD_PixelStrips::matrixDemo();
 
+  DOD_PixelStrips::symbols();
   EVERY_N_MILLISECONDS(20) {
     DOD_PixelStrips::pacifica_loop();
 
-    FastLED.show();
   }
+  FastLED.show();
   // EVERY_N_MILLISECONDS(1000) {
+    // DOD_PixelStrips::symbols();
     // DOD_PixelStrips::checkMonitorControls();
     // random16_add_entropy( random());  // fire
     // DOD_PixelStrips::pacifica_loop();
@@ -214,10 +205,81 @@ void DOD_PixelStrips::loop() {
 
   //   fire2012WithPalette(); // run simulation frame, using palette colors
 
-  //   FastLED.show();
+    // FastLED.show();
   // }
 
 }
+
+
+// Symbols
+void DOD_PixelStrips::symbols() {
+
+  
+  uint8_t spiralIds[] = {
+    XY(1, 0, false),
+    XY(2, 0, false),
+    XY(3, 0, false),
+    XY(4, 1, false),
+    XY(4, 2, false),
+    XY(3, 3, false),
+    XY(2, 3, false),
+    XY(1, 3, false),
+    XY(0, 2, false),
+    XY(0, 1, false)
+  };
+
+  uint8_t sinBeat = beatsin8(30, 0, 9, 0, 0);
+  uint8_t sinBeat2 = beatsin8(60, 0, 9, 0, 0);
+
+  uint8_t sinBeat3 = beatsin8(30, 0, 9, 0, 127);
+  uint8_t sinBeat4 = beatsin8(60, 0, 9, 0, 127);
+
+  // Color
+  uint8_t colBeat = beatsin8(45, 0, 255, 0, 0);
+
+  ledsInnerRight[spiralIds[(sinBeat + sinBeat2) / 2]] = CHSV(colBeat, 255, 255);
+  ledsInnerRight[spiralIds[(sinBeat3 + sinBeat4) / 2]] = CHSV(colBeat, 255, 255);
+  
+  // EVERY_N_MILLISECONDS(1) {
+  //   for(int i = 0; i < 4; i++) {
+  //     blur1d(ledsSymbolRight, NUM_LEDS_SYMBOL_RIGHT, 50);
+  //   }
+  // }
+  
+  
+  fadeToBlackBy(ledsSymbolRight, NUM_LEDS_SYMBOL_RIGHT, 10);
+
+  
+}
+
+// Done Symbols
+
+
+// void DOD_PixelStrips::matrixDemo() {
+//   uint32_t ms = millis();
+//     int32_t yHueDelta32 = ((int32_t)cos16( ms * (27/1) ) * (350 / kMatrixWidth));
+//     int32_t xHueDelta32 = ((int32_t)cos16( ms * (39/1) ) * (310 / kMatrixHeight));
+//     DrawOneFrame( ms / 65536, yHueDelta32 / 32768, xHueDelta32 / 32768);
+//     if( ms < 5000 ) {
+//       FastLED.setBrightness( scale8( 100, (ms * 256) / 5000)); // 100 brightness
+//     } else {
+//       FastLED.setBrightness(100);
+//     }
+//     FastLED.show();
+// }
+// void DOD_PixelStrips::DrawOneFrame( uint8_t startHue8, int8_t yHueDelta8, int8_t xHueDelta8) {
+//   uint8_t lineStartHue = startHue8;
+//   for( uint8_t y = 0; y < kMatrixHeight; y++) {
+//     lineStartHue += yHueDelta8;
+//     uint8_t pixelHue = lineStartHue;      
+//     for( uint8_t x = 0; x < kMatrixWidth; x++) {
+//       pixelHue += xHueDelta8;
+//       // ledsInnerLeft[ XY(x, y, true)]  = CHSV( pixelHue, 255, 255);
+//       ledsInnerRight[ XY(x, y, false)]  = CHSV( pixelHue, 255, 255);
+//     }
+//   }
+// }
+
 
 void DOD_PixelStrips::checkMonitorControls(){
   int my_potVal_hue = analogRead(DATA_PIN_HUE_MONITOR);  // Read potentiometer for hue.

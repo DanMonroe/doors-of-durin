@@ -13,6 +13,7 @@ private:
   // DOD_Pixel right[276];
 
 public:
+  void symbols();
   void matrixDemo();
   void DrawOneFrame( uint8_t startHue8, int8_t yHueDelta8, int8_t xHueDelta8);
 
