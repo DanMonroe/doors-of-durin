@@ -14,12 +14,9 @@ private:
 
 public:
   void symbols();
-  void matrixDemo();
-  void DrawOneFrame( uint8_t startHue8, int8_t yHueDelta8, int8_t xHueDelta8);
 
   void checkMonitorControls();
   void pacifica_loop();
-  void fire2012WithPalette();
   void pacifica_add_whitecaps(uint16_t numberOfLeds, CRGB *leds, uint16_t startLed);
   void pacifica_one_layer(CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff, uint16_t numberOfLeds, CRGB *leds, uint16_t startLed);
   // void pacifica_one_layer( CRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff);
