@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include "pins.h"
-// #include "motor_main.h"
 // #include <DOD_Sound.h>
 // #include <DOD_PixelStrips.h>
 

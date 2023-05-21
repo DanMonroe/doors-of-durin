@@ -29,9 +29,9 @@
  * 
  * Note pins 11, 12, 13 taken above
  */
-#define BREAKOUT_RESET  9      // VS1053 reset pin (output)
-#define BREAKOUT_CS     10     // VS1053 chip select pin (output)
-#define BREAKOUT_DCS    8      // VS1053 Data/command select pin (output)
+// #define BREAKOUT_RESET  9      // VS1053 reset pin (output)
+// #define BREAKOUT_CS     10     // VS1053 chip select pin (output)
+// #define BREAKOUT_DCS    8      // VS1053 Data/command select pin (output)
 // These are the pins used for the music maker shield
 #define SHIELD_RESET    -1      // VS1053 reset pin (unused!)
 #define SHIELD_CS       7      // VS1053 chip select pin (output)
@@ -47,7 +47,7 @@
  * 
  */
 // Arduino Mega has 6 external interrupt pin Digital pin 2, Digital pin 3, Digital pin 21, Digital pin 20, Digital pin 19 and Digital pin 18.
-const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
+const int DOD_PIN_stopButton = 9;               // Button to perform stop everything interrupt
 // const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
 const int DOD_PIN_initiateActionButtonPin = 10;
 // const int DOD_PIN_initiateActionButtonPin = 22;
