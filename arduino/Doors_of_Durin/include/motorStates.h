@@ -5,6 +5,7 @@
 // #include <Arduino.h>
 
 // State definitions
+#define MOTOR_STATE_INIT -1
 #define MOTOR_STATE_NOTHING 0
 #define MOTOR_STATE_RUN_CLOSING 1
 #define MOTOR_STATE_RUNSPEED_CLOSING 2
