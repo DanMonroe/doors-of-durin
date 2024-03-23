@@ -12,9 +12,16 @@
 // Create the motor shield object with the default I2C address
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
-// Adafruit_StepperMotor *leftStepperMotor = AFMS.getStepper(200, 2);
+Adafruit_StepperMotor *leftStepperMotor = AFMS.getStepper(200, 2);
 Adafruit_StepperMotor *rightStepperMotor = AFMS.getStepper(200, 1); // working
 
+
+void leftForwardStep() {
+  leftStepperMotor->onestep(FORWARD, DOUBLE);
+}
+void leftBackwardStep() {
+  leftStepperMotor->onestep(BACKWARD, DOUBLE);
+}
 void rightForwardStep() {
   rightStepperMotor->onestep(FORWARD, DOUBLE);
 }
@@ -23,9 +30,13 @@ void rightBackwardstep() {
   rightStepperMotor->onestep(BACKWARD, DOUBLE);
 }
 
+AccelStepper leftStepper(leftForwardStep, leftBackwardStep);
 AccelStepper rightStepper(rightForwardStep, rightBackwardstep);
 
 elapsedMillis printTime;
+const bool MOTORS_ENABLED = true;
+const bool LEFT_ENABLED = false;
+const bool RIGHT_ENABLED = true;
 const bool DEBUG = true;
 const int debounceTime = 200;
 
@@ -45,7 +56,9 @@ const int timeLimit = 10; // number of seconds
 #define RJSTR 02
 #define RUN_HOME 03
 #define STOP_NOW 04
+
 // State variable
+volatile int motorState[2] = {MOTOR_STATE_NOTHING, MOTOR_STATE_NOTHING};
 volatile int state;   // must survive interrupts
 
 void printName(int motorIndex) {
@@ -91,7 +104,8 @@ void checkLimitSwitchClosed(int motorIndex) {
     if (closeLimitSwitchState[motorIndex] == LOW) { // LOW = Closed
       println("LOW", motorIndex);
 
-      state = STOP_NOW;
+      // state = STOP_NOW;
+      motorState[motorIndex] = STOP_NOW;
 
       // if closing or closed already
       // if (motorState[motorIndex] < MOTOR_STATE_STOP) {
@@ -103,6 +117,15 @@ void checkLimitSwitchClosed(int motorIndex) {
     lastCloseLimitSwitchState[motorIndex] = closeLimitSwitchState[motorIndex];
   }
 }
+boolean motorEnabled(int motorIndex) {
+  if (motorIndex == LEFT) {
+    return LEFT_ENABLED;
+  }
+  if (motorIndex == RIGHT) {
+    return RIGHT_ENABLED;
+  }
+  return false;
+}
 
 void motor_setup() {
   AFMS.begin();
@@ -111,7 +134,9 @@ void motor_setup() {
 
   checkLimitSwitchClosed(RIGHT);
 
-  state = RJSTR;   // initial state is run, just run
+  // state = RJSTR;   // initial state is run, just run
+  motorState[LEFT] = RJSTR;   // initial state is run, just run
+  motorState[RIGHT] = RJSTR;   // initial state is run, just run
   // motorState[RIGHT] = MOTOR_STATE_NOTHING;
 
   rightStepper.setMaxSpeed(400.0);
@@ -140,9 +165,33 @@ void setup() {
 
   motor_setup();
 }
+float getStepperSpeed(int motorIndex) {
+  if (motorIndex == LEFT) {
+    return leftStepper.speed();
+  }
+  if (motorIndex == RIGHT) {
+    return rightStepper.speed();
+  }
+  return 0.0;
+}
+void stepperRunSpeed(int motorIndex) {
+  if (motorIndex == LEFT) {
+    leftStepper.runSpeed();
+  } else {
+    rightStepper.runSpeed();
+  }
+}
+void stepperRun(int motorIndex) {
+  if (motorIndex == LEFT) {
+    leftStepper.run();
+  } else {
+    rightStepper.run();
+  }
+}
+
 
 int lCount = 0; // elapsed seconds
-void motor_loop() {
+void motor_loop(int motorIndex) {
   // rightStepper.runSpeed();
   // if (!rightStepper.run()) {
   //     rightStepper.moveTo(-rightStepper.currentPosition());
@@ -152,21 +201,25 @@ void motor_loop() {
   if (printTime >= 1000) { // reports speed and position each second
     printTime = 0;
     lCount++;
-    mSpeed = rightStepper.speed();
-    Serial.print("  "); //////
-    Serial.print(mSpeed);
-    Serial.print("  ");
-    Serial.println(rightStepper.currentPosition());
-  switch (state) {
+    // mSpeed = rightStepper.speed();
+    mSpeed = getStepperSpeed(motorIndex);
+    // Serial.print("  "); //////
+    // Serial.print(mSpeed);
+    // Serial.print("  ");
+    // Serial.println(rightStepper.currentPosition());
+  switch (motorState[motorIndex]) {
+  // switch (state) {
       case RSPD:
         if (lCount >= timeLimit) {
-          digitalWrite(closeLimitSwitchPin[RIGHT], LOW);    // This will trigger interrupt
+          digitalWrite(closeLimitSwitchPin[motorIndex], LOW);    // This will trigger interrupt
+          // digitalWrite(closeLimitSwitchPin[RIGHT], LOW);    // This will trigger interrupt
           // digitalWrite(sensorPin,HIGH);    // This will trigger interrupt
         }
         break;
       case RJSTR:
         if (mSpeed <= -200.0) {
-          state = RSPD;   // switch to run speed state when target speed is reached
+          motorState[motorIndex] = RSPD;   // switch to run speed state when target speed is reached
+          // state = RSPD;   // switch to run speed state when target speed is reached
         }
         break;
       case RUN_HOME:
@@ -174,83 +227,54 @@ void motor_loop() {
         break;
     }
   }
-  switch (state) {    // happens each loop - about 70KHz
+  switch (motorState[motorIndex]) {    // happens each loop - about 70KHz
+  // switch (state) {    // happens each loop - about 70KHz
     case RSPD:
-      rightStepper.runSpeed();
+      // rightStepper.runSpeed();
+      stepperRunSpeed(motorIndex);
       break;
     case RJSTR:
     case RUN_HOME:
-      rightStepper.run();
+      // rightStepper.run();
+      stepperRun(motorIndex);
       break;
     case STOP_NOW:
-      digitalWrite(closeLimitSwitchPin[RIGHT], HIGH);    // removes interrupt signal
+      digitalWrite(closeLimitSwitchPin[motorIndex], HIGH);    // removes interrupt signal
+      // digitalWrite(closeLimitSwitchPin[RIGHT], HIGH);    // removes interrupt signal
       // digitalWrite(sensorPin,LOW);    // removes interrupt signal
-      rightStepper.setAcceleration(200.0);  // this makes motor stop much quicker!
-      rightStepper.stop();
-      rightStepper.runToPosition();  // brings to a stop!
-      rightStepper.moveTo(0);  // now return to home position
-      rightStepper.setAcceleration(50.0);  // slow motor acceleration back down
+
+      if (motorIndex == LEFT) {
+        leftStepper.setAcceleration(200.0);  // this makes motor stop much quicker!
+        leftStepper.stop();
+        leftStepper.runToPosition();  // brings to a stop!
+        leftStepper.moveTo(0);  // now return to home position
+        leftStepper.setAcceleration(50.0);  // slow motor acceleration back down
+      }
+      if (motorIndex == RIGHT) {
+        rightStepper.setAcceleration(200.0);  // this makes motor stop much quicker!
+        rightStepper.stop();
+        rightStepper.runToPosition();  // brings to a stop!
+        rightStepper.moveTo(0);  // now return to home position
+        rightStepper.setAcceleration(50.0);  // slow motor acceleration back down
+      }
       //rightStepper.move(-rightStepper.currentPosition()); // This should work also
-      state = RUN_HOME;
+
+      motorState[motorIndex] = RUN_HOME;
+      // state = RUN_HOME;
       break;
   }
-  //   // if (mSpeed <= -200.0) {       // for negative rotation
-  //   if (mSpeed >= 200.0) {               // for positive rotation
-  //     state = RSPD; // switch to run speed state when target speed is reached
-  //   }
-  //   switch (state) {
-  //     case RSPD:
-  //       if (lCount >= timeLimit) {
-  //         rightStepper.setAcceleration(200.0); // this makes motor stop much quicker!
-  //         rightStepper.stop();
-  //         rightStepper.runToPosition(); // go immediately to stop position!
-  //         state = STOPPED;
-  //       }
-  //       break;
-  //     case RJSTR:
-  //       if (mSpeed >= 200.0) {
-  //         state = RSPD; // switch to run speed state when target speed is reached
-  //       }
-  //       break;
-  //     case STOPPED:
-  //       break;
-  //   }
-  // }
-  // switch (state) {
-  //   case RSPD:
-  //     rightStepper.runSpeed();
-  //     break;
-  //   case RJSTR:
-  //     rightStepper.run();
-  //     break;
-  //   case STOPPED:
-  //     break;
-  // }
-  // switch (state) {
-  //   case RSPD:
-  //     rightStepper.runSpeed();
-  //     break;
-  //   case RJSTR:
-  //     rightStepper.run();
-  //     break;
-  // }
 }
 
 void loop() {
   for (int motorIndex=0; motorIndex<2; motorIndex++) {
-    if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
-
-      // printName(motorIndex);
-      // print('close limit state: ', motorIndex);
-      // print(closeLimitSwitchState[motorIndex], motorIndex);
-      // print(' last state: ', motorIndex);
-      // println(lastCloseLimitSwitchState[motorIndex], motorIndex);
-
-      checkLimitSwitchClosed(motorIndex);
-      lastCloseLimitSwitchTime[motorIndex] = 0;
+    if (motorEnabled(motorIndex)) {
+      if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
+        checkLimitSwitchClosed(motorIndex);
+        lastCloseLimitSwitchTime[motorIndex] = 0;
+      }
+      motor_loop(motorIndex);
     }
   }
-  motor_loop();
 }
 
 // void setup() {
