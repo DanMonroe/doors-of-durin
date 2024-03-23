@@ -13,7 +13,7 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 Adafruit_StepperMotor *leftStepperMotor = AFMS.getStepper(200, 2);
-Adafruit_StepperMotor *rightStepperMotor = AFMS.getStepper(200, 1); // working
+Adafruit_StepperMotor *rightStepperMotor = AFMS.getStepper(200, 1);
 
 
 void leftForwardStep() {
@@ -35,7 +35,7 @@ AccelStepper rightStepper(rightForwardStep, rightBackwardstep);
 
 elapsedMillis printTime;
 const bool MOTORS_ENABLED = true;
-const bool LEFT_ENABLED = false;
+const bool LEFT_ENABLED = true;
 const bool RIGHT_ENABLED = true;
 const bool DEBUG = true;
 const int debounceTime = 200;
@@ -130,19 +130,38 @@ boolean motorEnabled(int motorIndex) {
 void motor_setup() {
   AFMS.begin();
 
-  pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
+  // pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
+  // checkLimitSwitchClosed(RIGHT);
+  if (motorEnabled(LEFT)) {
+    motorState[LEFT] = MOTOR_STATE_NOTHING;
+    pinMode(closeLimitSwitchPin[LEFT], INPUT_PULLUP);
 
-  checkLimitSwitchClosed(RIGHT);
+    checkLimitSwitchClosed(LEFT);
+    motorState[LEFT] = RJSTR;   // initial state is run, just run
+    leftStepper.setMaxSpeed(400.0);
+    leftStepper.setAcceleration(50.0);
+    leftStepper.moveTo(-10000);
+  }
+  if (motorEnabled(RIGHT)) {
+    motorState[RIGHT] = MOTOR_STATE_NOTHING;
+    pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
+
+    checkLimitSwitchClosed(RIGHT);
+    motorState[RIGHT] = RJSTR;   // initial state is run, just run
+    rightStepper.setMaxSpeed(400.0);
+    rightStepper.setAcceleration(50.0);
+    rightStepper.moveTo(10000);
+  }
+
 
   // state = RJSTR;   // initial state is run, just run
-  motorState[LEFT] = RJSTR;   // initial state is run, just run
-  motorState[RIGHT] = RJSTR;   // initial state is run, just run
+  // motorState[LEFT] = RJSTR;   // initial state is run, just run
+  // motorState[RIGHT] = RJSTR;   // initial state is run, just run
   // motorState[RIGHT] = MOTOR_STATE_NOTHING;
 
-  rightStepper.setMaxSpeed(400.0);
-  rightStepper.setAcceleration(50.0);
-  rightStepper.moveTo(10000);
-  // rightStepper.setSpeed(50);
+  // rightStepper.setMaxSpeed(400.0);
+  // rightStepper.setAcceleration(50.0);
+  // rightStepper.moveTo(10000);
 
   delay(500); // avoids startup pause
   Serial.println("motor_setup done");
