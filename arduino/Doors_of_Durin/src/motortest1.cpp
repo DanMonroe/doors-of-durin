@@ -247,15 +247,15 @@ void motor_loop(int motorIndex) {
         leftStepper.setAcceleration(200.0);  // this makes motor stop much quicker!
         leftStepper.stop();
         leftStepper.runToPosition();  // brings to a stop!
-        leftStepper.moveTo(0);  // now return to home position
-        leftStepper.setAcceleration(50.0);  // slow motor acceleration back down
+        // leftStepper.moveTo(0);  // now return to home position
+        // leftStepper.setAcceleration(50.0);  // slow motor acceleration back down
       }
       if (motorIndex == RIGHT) {
         rightStepper.setAcceleration(200.0);  // this makes motor stop much quicker!
         rightStepper.stop();
         rightStepper.runToPosition();  // brings to a stop!
-        rightStepper.moveTo(0);  // now return to home position
-        rightStepper.setAcceleration(50.0);  // slow motor acceleration back down
+        // rightStepper.moveTo(0);  // now return to home position
+        // rightStepper.setAcceleration(50.0);  // slow motor acceleration back down
       }
       //rightStepper.move(-rightStepper.currentPosition()); // This should work also
 
