@@ -34,9 +34,9 @@ AccelStepper leftStepper(leftForwardStep, leftBackwardStep);
 AccelStepper rightStepper(rightForwardStep, rightBackwardstep);
 
 elapsedMillis printTime;
-const bool MOTORS_ENABLED = true;
-const bool LEFT_ENABLED = true;
-const bool RIGHT_ENABLED = true;
+const bool MOTORS_ENABLED = false;
+const bool LEFT_ENABLED = false;
+const bool RIGHT_ENABLED = false;
 const bool DEBUG = true;
 const int debounceTime = 200;
 
@@ -59,7 +59,7 @@ const int timeLimit = 10; // number of seconds
 
 // State variable
 volatile int motorState[2] = {MOTOR_STATE_NOTHING, MOTOR_STATE_NOTHING};
-volatile int state;   // must survive interrupts
+// volatile int state;   // must survive interrupts
 
 void printName(int motorIndex) {
   if (motorIndex == LEFT) {
@@ -87,6 +87,49 @@ void println(long val, int motorIndex) {
   if (DEBUG) {
     Serial.println(val);
   }
+}
+void printMotorState(int motorIndex) {
+  if (DEBUG) {
+    // if (lastPrintMotorState[motorIndex] != motorState[motorIndex]) {
+      // lastPrintMotorState[motorIndex] = motorState[motorIndex];
+
+      printName(motorIndex);
+      print("State: ", motorIndex);
+      switch (motorState[motorIndex]) {
+        case MOTOR_STATE_NOTHING:
+            print("MOTOR_STATE_NOTHING", motorIndex);
+          break;
+        case MOTOR_STATE_RUN_CLOSING:
+          // Closing start
+          print("MOTOR_STATE_RUN_CLOSING", motorIndex);
+          break;
+        case MOTOR_STATE_RUNSPEED_CLOSING:
+          print("MOTOR_STATE_RUNSPEED_CLOSING", motorIndex);
+          // Closing 
+          break;
+        case MOTOR_STATE_STOP:
+          print("MOTOR_STATE_STOP", motorIndex);
+          // Stopped
+          // dont call run
+          break;
+        case MOTOR_STATE_RUN_OPENING:
+          print("MOTOR_STATE_RUN_OPENING", motorIndex);
+          // Opening start
+          break;
+        case MOTOR_STATE_RUNSPEED_OPENING:
+          print("MOTOR_STATE_RUNSPEED_OPENING", motorIndex);
+          // Opening
+          break;
+
+        default:
+          print("MOTOR_STATE_NOTHING", motorIndex);
+          break;
+      }
+      print(" (", motorIndex);
+      print(motorState[motorIndex], motorIndex);
+      println(")", motorIndex);
+    }
+  // }
 }
 
 void checkLimitSwitchClosed(int motorIndex) {
@@ -128,44 +171,46 @@ boolean motorEnabled(int motorIndex) {
 }
 
 void motor_setup() {
-  AFMS.begin();
+  if (MOTORS_ENABLED) {
+    AFMS.begin();
 
-  // pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
-  // checkLimitSwitchClosed(RIGHT);
-  if (motorEnabled(LEFT)) {
-    motorState[LEFT] = MOTOR_STATE_NOTHING;
-    pinMode(closeLimitSwitchPin[LEFT], INPUT_PULLUP);
+    // pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
+    // checkLimitSwitchClosed(RIGHT);
+    if (motorEnabled(LEFT)) {
+      motorState[LEFT] = MOTOR_STATE_NOTHING;
+      pinMode(closeLimitSwitchPin[LEFT], INPUT_PULLUP);
 
-    checkLimitSwitchClosed(LEFT);
-    motorState[LEFT] = RJSTR;   // initial state is run, just run
-    leftStepper.setMaxSpeed(400.0);
-    leftStepper.setAcceleration(50.0);
-    leftStepper.moveTo(-10000);
+      checkLimitSwitchClosed(LEFT);
+      motorState[LEFT] = RJSTR;   // initial state is run, just run
+      leftStepper.setMaxSpeed(400.0);
+      leftStepper.setAcceleration(50.0);
+      leftStepper.moveTo(-10000);
+    }
+    if (motorEnabled(RIGHT)) {
+      motorState[RIGHT] = MOTOR_STATE_NOTHING;
+      pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
+
+      checkLimitSwitchClosed(RIGHT);
+      motorState[RIGHT] = RJSTR;   // initial state is run, just run
+      rightStepper.setMaxSpeed(400.0);
+      rightStepper.setAcceleration(50.0);
+      rightStepper.moveTo(10000);
+    }
+
+
+    // state = RJSTR;   // initial state is run, just run
+    // motorState[LEFT] = RJSTR;   // initial state is run, just run
+    // motorState[RIGHT] = RJSTR;   // initial state is run, just run
+    // motorState[RIGHT] = MOTOR_STATE_NOTHING;
+
+    // rightStepper.setMaxSpeed(400.0);
+    // rightStepper.setAcceleration(50.0);
+    // rightStepper.moveTo(10000);
+
+    delay(500); // avoids startup pause
+    Serial.println("motor_setup done");
+    //   delay(1500);  // avoids startup pause
   }
-  if (motorEnabled(RIGHT)) {
-    motorState[RIGHT] = MOTOR_STATE_NOTHING;
-    pinMode(closeLimitSwitchPin[RIGHT], INPUT_PULLUP);
-
-    checkLimitSwitchClosed(RIGHT);
-    motorState[RIGHT] = RJSTR;   // initial state is run, just run
-    rightStepper.setMaxSpeed(400.0);
-    rightStepper.setAcceleration(50.0);
-    rightStepper.moveTo(10000);
-  }
-
-
-  // state = RJSTR;   // initial state is run, just run
-  // motorState[LEFT] = RJSTR;   // initial state is run, just run
-  // motorState[RIGHT] = RJSTR;   // initial state is run, just run
-  // motorState[RIGHT] = MOTOR_STATE_NOTHING;
-
-  // rightStepper.setMaxSpeed(400.0);
-  // rightStepper.setAcceleration(50.0);
-  // rightStepper.moveTo(10000);
-
-  delay(500); // avoids startup pause
-  Serial.println("motor_setup done");
-  //   delay(1500);  // avoids startup pause
 }
 
 
@@ -285,13 +330,15 @@ void motor_loop(int motorIndex) {
 }
 
 void loop() {
-  for (int motorIndex=0; motorIndex<2; motorIndex++) {
-    if (motorEnabled(motorIndex)) {
-      if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
-        checkLimitSwitchClosed(motorIndex);
-        lastCloseLimitSwitchTime[motorIndex] = 0;
+  if (MOTORS_ENABLED) {
+    for (int motorIndex=0; motorIndex<2; motorIndex++) {
+      if (motorEnabled(motorIndex)) {
+        if ( lastCloseLimitSwitchTime[motorIndex] >= debounceTime) {
+          checkLimitSwitchClosed(motorIndex);
+          lastCloseLimitSwitchTime[motorIndex] = 0;
+        }
+        motor_loop(motorIndex);
       }
-      motor_loop(motorIndex);
     }
   }
 }
