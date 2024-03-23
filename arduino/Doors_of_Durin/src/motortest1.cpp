@@ -1,3 +1,8 @@
+// Using the Arduino AccelStepper Library
+// https://hackaday.io/project/183713/instructions
+
+
+
 #include <Arduino.h>
 #include "pins.h"
 #include <Wire.h>
