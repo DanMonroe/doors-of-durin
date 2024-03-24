@@ -15,7 +15,8 @@
 
 #define MS_NOTHING 0
 #define MS_CLOSING 2
-#define MS_STOP 4
+#define MS_STOPPING 4
+#define MS_STOPPED 5
 #define MS_OPENING 6
 #define MS_FULLY_OPENED 8
 
