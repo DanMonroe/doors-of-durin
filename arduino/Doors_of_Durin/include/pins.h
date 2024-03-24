@@ -47,8 +47,8 @@
  * 
  */
 // Arduino Mega has 6 external interrupt pin Digital pin 2, Digital pin 3, Digital pin 21, Digital pin 20, Digital pin 19 and Digital pin 18.
-const int DOD_PIN_stopButton = 9;               // Button to perform stop everything interrupt
-// const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
+// const int DOD_PIN_stopButton = 9;               // Button to perform stop everything interrupt
+const int DOD_PIN_stopButton = 2;               // Button to perform stop everything interrupt
 const int DOD_PIN_initiateActionButtonPin = 10;
 // const int DOD_PIN_initiateActionButtonPin = 22;
 

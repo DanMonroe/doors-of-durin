@@ -59,6 +59,10 @@ int goButtonState = 0;
 int lastGoButtonState = -1;
 elapsedMillis lastGoTime;
 
+volatile int stopButtonState = 0;           // current state of the stop button (on interrupt)
+int lastStopButtonState = -1;
+elapsedMillis lastStopTime;
+
 // UnoAccelStepperExper_3.ino
 // define the time limit to run before stopping
 const int timeLimit = 10; // number of seconds
@@ -143,6 +147,46 @@ void printMotorState(int motorIndex) {
   // }
 }
 
+// Interrupt when the STOP button is pressed
+// Set state on all motors to STOP
+void stopEverything() {
+  println("STOP!!!!!");
+
+  if (MOTORS_ENABLED) {
+    // leftMotor.stopEverything("Motor 1");
+    // rightMotor.stopEverything("Motor 2");
+    // rightStepper->release();
+
+    // if (motorEnabled(LEFT)) {
+    //   motorState[LEFT] = MOTOR_STATE_NOTHING; // or MOTOR_STATE_STOP 
+    //   // motorState[LEFT] = MOTOR_STATE_STOP;
+    // }
+    // if (motorEnabled(RIGHT)) {
+    //   motorState[RIGHT] = MOTOR_STATE_NOTHING;  // or MOTOR_STATE_STOP ?
+    //   // motorState[RIGHT] = MOTOR_STATE_STOP;
+    // }
+    // Wire.beginTransmission(SLAVE_ADDR);
+    // Wire.write(SIGNAL_STOP_EVERYTHING);
+    // Wire.endTransmission();
+
+  }
+}
+void checkStopButton() {
+  if ( lastStopTime >= debounceTime) {
+    stopButtonState = digitalRead(DOD_PIN_stopButton);
+    // if (stopButtonState != lastStopButtonState) {
+      print("STOP button: ");
+      if (stopButtonState == HIGH) {
+        println("HIGH - PRESSED");
+        stopEverything();
+      } else {
+        println("LOW - NOT PRESSED");
+      }
+      lastStopButtonState = stopButtonState;
+    // }
+    // lastStopTime = 0;
+  }
+}
 void checkGoButton() {
   if ( lastGoTime >= debounceTime) {
     goButtonState = digitalRead(goButtonPin);
@@ -257,6 +301,10 @@ void setup() {
     Serial.println("Start");
     Serial.println();
   }
+
+// Setup Emergency STOP button  
+  pinMode(DOD_PIN_stopButton, INPUT);
+  attachInterrupt(digitalPinToInterrupt(DOD_PIN_stopButton), checkStopButton, RISING);
 
   motor_setup();
 }
