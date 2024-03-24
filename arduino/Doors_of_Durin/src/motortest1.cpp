@@ -41,9 +41,9 @@ AccelStepper rightStepper(rightForwardStep, rightBackwardstep);
 
 elapsedMillis printTime;
 const bool MOTORS_ENABLED = true;
-const bool LEFT_ENABLED = false;
+const bool LEFT_ENABLED = true;
 const bool RIGHT_ENABLED = true;
-const bool DEBUG = true;
+const bool DEBUG = false;
 const int debounceTime = 200;
 const int MAX_SPEED = 100;  // ~= 19 seconds per revolution
 
@@ -58,7 +58,7 @@ elapsedMillis lastCloseLimitSwitchTime[2];
 
 int closingDirection[2] = {-1, 1};
 int openingDirection[2] = {1, -1};
-int openingMoveTarget[2] = {400, 400};
+int openingMoveTarget[2] = {1400, 1400};
 int motorAcceleration[2] = {200, 200};
 
 const int goButtonPin = 10;
@@ -436,7 +436,7 @@ void motor_loop(int motorIndex) {
 
   switch (motorState[motorIndex]) {
     case MS_CLOSING:
-      stepperSetSpeed(125.0, motorIndex);
+      stepperSetSpeed(closingDirection[motorIndex] * 125.0, motorIndex);
       stepperRun(motorIndex);
       break;
     case MS_STOPPING:
