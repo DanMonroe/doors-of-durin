@@ -12,4 +12,11 @@
 #define MOTOR_STATE_RUN_OPENING 4
 #define MOTOR_STATE_RUNSPEED_OPENING 5
 
+
+#define MS_NOTHING 0
+#define MS_CLOSING 2
+#define MS_STOP 4
+#define MS_OPENING 6
+#define MS_FULLY_OPENED 8
+
 #endif
